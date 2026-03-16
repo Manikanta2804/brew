@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BrewDash - Seller Dashboard</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
+    body{background:#f2f2f2;}
+    .header{background:#1a1a2e;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+    .header-left{display:flex;align-items:center;gap:10px;}
+    .logo{color:#fff;font-size:1.1rem;font-weight:bold;}
+    .seller-name{color:#aaa;font-size:0.78rem;}
+    .logout-btn{background:#e94560;color:white;border:none;padding:6px 12px;border-radius:12px;font-size:0.78rem;cursor:pointer;}
+    .profile-hero{background:linear-gradient(135deg,#1a1a2e,#0f3460);padding:25px 20px;display:flex;gap:15px;align-items:center;}
+    .shop-avatar{width:70px;height:70px;border-radius:15px;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:2rem;overflow:hidden;border:2px solid #e94560;flex-shrink:0;}
+    .shop-avatar img{width:100%;height:100%;object-fit:cover;}
+    .shop-info{flex:1;}
+    .shop-name{color:white;font-size:1.2rem;font-weight:bold;margin-bottom:3px;}
+    .shop-city{color:rgba(255,255,255,0.6);font-size:0.8rem;margin-bottom:6px;}
+    .approval-badge{padding:4px 12px;border-radius:12px;font-size:0.75rem;font-weight:bold;display:inline-block;}
+    .approved{background:#e8f8f0;color:#00a854;}
+    .pending{background:#fff8e6;color:#f5a623;}
+    .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:12px 15px;background:white;margin-bottom:8px;}
+    .stat-card{background:#f9f9f9;border-radius:12px;padding:15px;text-align:center;}
+    .stat-num{font-size:1.5rem;font-weight:bold;color:#e94560;}
+    .stat-label{font-size:0.72rem;color:#777;margin-top:3px;}
+    .tabs{display:flex;background:white;padding:5px 10px;gap:5px;margin-bottom:8px;overflow-x:auto;}
+    .tab{padding:9px 14px;border:none;background:transparent;color:#777;font-size:0.82rem;font-weight:bold;cursor:pointer;border-radius:8px;white-space:nowrap;}
+    .tab.active{background:#e94560;color:white;}
+    .container{padding:0 15px 15px;}
+    .card{background:white;border-radius:12px;padding:18px;margin-bottom:10px;box-shadow:0 1px 5px rgba(0,0,0,0.05);}
+    .card-title{font-size:0.95rem;font-weight:bold;color:#333;margin-bottom:15px;display:flex;justify-content:space-between;align-items:center;}
+    .add-btn{background:#e94560;color:white;border:none;padding:7px 14px;border-radius:8px;font-size:0.8rem;cursor:pointer;}
+    .form-group{margin-bottom:12px;}
+    .form-group label{font-size:0.78rem;color:#777;display:block;margin-bottom:5px;font-weight:bold;}
+    .form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 13px;border:1px solid #ddd;border-radius:8px;font-size:0.88rem;outline:none;}
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:#e94560;}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .upload-box{border:2px dashed #ddd;border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:border 0.2s;}
+    .upload-box:hover{border-color:#e94560;}
+    .upload-preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+    .preview-img{width:70px;height:70px;border-radius:8px;object-fit:cover;}
+    .submit-btn{width:100%;padding:13px;background:linear-gradient(135deg,#e94560,#c62a47);color:white;border:none;border-radius:10px;font-size:0.92rem;font-weight:bold;cursor:pointer;margin-top:5px;}
+    .product-item{display:flex;gap:12px;padding:12px;background:#f9f9f9;border-radius:10px;margin-bottom:8px;align-items:center;}
+    .product-thumb{width:55px;height:55px;border-radius:8px;background:linear-gradient(135deg,#1a1a2e,#0f3460);display:flex;align-items:center;justify-content:center;font-size:1.5rem;overflow:hidden;flex-shrink:0;}
+    .product-thumb img{width:100%;height:100%;object-fit:cover;}
+    .product-item-info{flex:1;}
+    .product-item-name{font-weight:bold;font-size:0.88rem;color:#333;}
+    .product-item-price{color:#e94560;font-size:0.82rem;font-weight:bold;margin-top:2px;}
+    .product-item-status{font-size:0.72rem;margin-top:3px;}
+    .approved-text{color:#00a854;}
+    .pending-text{color:#f5a623;}
+    .product-actions{display:flex;gap:6px;}
+    .edit-btn{background:#1a1a2e;color:white;border:none;padding:5px 10px;border-radius:6px;font-size:0.75rem;cursor:pointer;}
+    .del-btn{background:#e94560;color:white;border:none;padding:5px 10px;border-radius:6px;font-size:0.75rem;cursor:pointer;}
+    .order-card{background:#f9f9f9;border-radius:10px;padding:12px;margin-bottom:8px;border-left:3px solid #e94560;}
+    .order-top{display:flex;justify-content:space-between;margin-bottom:6px;}
+    .order-id{font-weight:bold;font-size:0.85rem;}
+    .order-status{font-size:0.72rem;padding:3px 8px;border-radius:10px;font-weight:bold;}
+    .status-confirmed{background:#e8f4fd;color:#0072b1;}
+    .status-preparing{background:#fff8e6;color:#f5a623;}
+    .status-out_for_delivery{background:#e8f0fe;color:#4285f4;}
+    .status-delivered{background:#e8f8f0;color:#00a854;}
+    .order-items-text{font-size:0.78rem;color:#777;margin-bottom:5px;}
+    .order-amount{font-weight:bold;color:#e94560;font-size:0.85rem;}
+    .msg{padding:8px;border-radius:6px;font-size:0.82rem;margin-top:8px;text-align:center;}
+    .success{background:#e8f8f0;color:#00a854;}
+    .error{background:#fff0f3;color:#e94560;}
+    .no-items{text-align:center;color:#aaa;padding:25px;}
+    .profile-form .form-group{margin-bottom:10px;}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div>
+      <div class="logo">🍺 BrewDash Seller</div>
+      <div class="seller-name" id="sellerNameHead">Loading...</div>
+    </div>
+  </div>
+  <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<!-- PROFILE HERO -->
+<div class="profile-hero">
+  <div class="shop-avatar" id="shopAvatar">🏪</div>
+  <div class="shop-info">
+    <div class="shop-name" id="shopName">Loading...</div>
+    <div class="shop-city" id="shopCity"></div>
+    <span class="approval-badge" id="approvalBadge">Checking...</span>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat-num" id="statProducts">0</div><div class="stat-label">Products</div></div>
+  <div class="stat-card"><div class="stat-num" id="statOrders">0</div><div class="stat-label">Orders</div></div>
+  <div class="stat-card"><div class="stat-num" id="statEarnings">₹0</div><div class="stat-label">Earnings</div></div>
+  <div class="stat-card"><div class="stat-num" id="statRating">0</div><div class="stat-label">Rating</div></div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="showTab('products',this)">📦 Products</button>
+  <button class="tab" onclick="showTab('addProduct',this)">➕ Add Product</button>
+  <button class="tab" onclick="showTab('orders',this)">📋 Orders</button>
+  <button class="tab" onclick="showTab('profile',this)">👤 Profile</button>
+</div>
+
+<div class="container">
+
+  <!-- PRODUCTS TAB -->
+  <div id="productsTab">
+    <div class="card">
+      <div class="card-title">
+        📦 My Products
+        <button class="add-btn" onclick="showTab('addProduct',document.querySelectorAll('.tab')[1])">+ Add New</button>
+      </div>
+      <div id="productsList"><div class="no-items">⏳ Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- ADD PRODUCT TAB -->
+  <div id="addProductTab" style="display:none;">
+    <div class="card">
+      <div class="card-title">➕ Add New Product</div>
+      <div class="form-row">
+        <div class="form-group"><label>Product Name *</label><input type="text" id="pName" placeholder="e.g. Kingfisher Strong"/></div>
+        <div class="form-group">
+          <label>Category *</label>
+          <select id="pCategory">
+            <option value="">Select category</option>
+            <option value="beer">🍺 Beer</option>
+            <option value="wine">🍷 Wine</option>
+            <option value="whiskey">🥃 Whiskey</option>
+            <option value="vodka">🍸 Vodka</option>
+            <option value="rum">🍹 Rum</option>
+            <option value="food">🍗 Food</option>
+            <option value="snacks">🥜 Snacks</option>
+            <option value="other">🍾 Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>Description *</label><textarea id="pDesc" rows="3" placeholder="Describe your product..."></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Price (₹) *</label><input type="number" id="pPrice" placeholder="0"/></div>
+        <div class="form-group"><label>Discount Price (₹)</label><input type="number" id="pDiscountPrice" placeholder="Optional"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Stock *</label><input type="number" id="pStock" placeholder="0"/></div>
+        <div class="form-group"><label>Volume/Weight</label><input type="text" id="pVolume" placeholder="e.g. 750ml"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Brand</label><input type="text" id="pBrand" placeholder="Brand name"/></div>
+        <div class="form-group"><label>Tags</label><input type="text" id="pTags" placeholder="e.g. cold,strong,premium"/></div>
+      </div>
+      <div class="form-group">
+        <label>Product Images *</label>
+        <div class="upload-box" onclick="document.getElementById('pImages').click()">
+          <input type="file" id="pImages" accept="image/*" multiple style="display:none;" onchange="previewImages(this)"/>
+          <div style="font-size:2rem;margin-bottom:5px;">📸</div>
+          <div style="font-size:0.82rem;color:#aaa;">Click to upload images (max 5)</div>
+        </div>
+        <div class="upload-preview" id="imagePreview"></div>
+      </div>
+      <button class="submit-btn" onclick="addProduct()">🚀 Submit Product for Approval</button>
+      <div id="addProductMsg" class="msg"></div>
+    </div>
+  </div>
+
+  <!-- ORDERS TAB -->
+  <div id="ordersTab" style="display:none;">
+    <div class="card">
+      <div class="card-title">📋 Recent Orders</div>
+      <div id="sellerOrdersList"><div class="no-items">⏳ Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- PROFILE TAB -->
+  <div id="profileTab" style="display:none;">
+    <div class="card">
+      <div class="card-title">👤 Shop Profile</div>
+      <div class="profile-form">
+        <div class="form-group"><label>Your Name</label><input type="text" id="sName" placeholder="Full name"/></div>
+        <div class="form-group"><label>Shop Name</label><input type="text" id="sShopName" placeholder="Shop name"/></div>
+        <div class="form-group"><label>Description</label><textarea id="sShopDesc" rows="3" placeholder="Shop description"></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label>City</label><input type="text" id="sCity" placeholder="City"/></div>
+          <div class="form-group"><label>Pincode</label><input type="text" id="sPincode" placeholder="Pincode"/></div>
+        </div>
+        <div class="form-group"><label>Address</label><input type="text" id="sAddress" placeholder="Full address"/></div>
+        <div class="form-group">
+          <label>Shop Image</label>
+          <div class="upload-box" onclick="document.getElementById('sShopImg').click()">
+            <input type="file" id="sShopImg" accept="image/*" style="display:none;" onchange="previewShopImg(this)"/>
+            <div style="font-size:1.5rem;margin-bottom:3px;">🏪</div>
+            <div style="font-size:0.78rem;color:#aaa;">Upload shop image</div>
+          </div>
+          <img id="shopImgPreview" style="width:80px;height:80px;border-radius:10px;object-fit:cover;margin-top:8px;display:none;"/>
+        </div>
+        <button class="submit-btn" onclick="saveProfile()">💾 Save Profile</button>
+        <div id="profileMsg" class="msg"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  if (!token || role !== 'seller') window.location.href = '/';
+
+  let sellerProfile = null;
+
+  async function loadProfile() {
+    try {
+      const res = await fetch('/api/seller/profile', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      if (data.success) {
+        sellerProfile = data.seller;
+        renderProfile(data.seller);
+      }
+    } catch (err) { console.error(err); }
+  }
+
+  function renderProfile(s) {
+    document.getElementById('sellerNameHead').textContent = s.shopName;
+    document.getElementById('shopName').textContent = s.shopName;
+    document.getElementById('shopCity').textContent = '📍 ' + s.city + ' • 📱 ' + s.phone;
+    document.getElementById('statRating').textContent = s.rating || '0';
+    document.getElementById('statEarnings').textContent = '₹' + (s.totalEarnings || 0);
+    if (s.shopImage) document.getElementById('shopAvatar').innerHTML = `<img src="${s.shopImage}" alt="${s.shopName}"/>`;
+    const badge = document.getElementById('approvalBadge');
+    badge.textContent = s.isApproved ? '✅ Approved' : '⏳ Pending Approval';
+    badge.className = 'approval-badge ' + (s.isApproved ? 'approved' : 'pending');
+    document.getElementById('sName').value = s.name || '';
+    document.getElementById('sShopName').value = s.shopName || '';
+    document.getElementById('sShopDesc').value = s.shopDescription || '';
+    document.getElementById('sCity').value = s.city || '';
+    document.getElementById('sPincode').value = s.pincode || '';
+    document.getElementById('sAddress').value = s.address || '';
+  }
+
+  async function loadProducts() {
+    try {
+      const res = await fetch('/api/products/seller/my-products', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      document.getElementById('statProducts').textContent = data.products ? data.products.length : 0;
+      if (!data.products || !data.products.length) {
+        document.getElementById('productsList').innerHTML = '<div class="no-items">No products yet. Add your first product!</div>';
+        return;
+      }
+      document.getElementById('productsList').innerHTML = data.products.map(p => `
+        <div class="product-item">
+          <div class="product-thumb">
+            ${p.images && p.images.length ? `<img src="${p.images[0]}" alt="${p.name}" onerror="this.parentElement.innerHTML='🍺'"/>` : '🍺'}
+          </div>
+          <div class="product-item-info">
+            <div class="product-item-name">${p.name}</div>
+            <div class="product-item-price">₹${p.price} ${p.discountPrice ? '→ ₹' + p.discountPrice : ''}</div>
+            <div class="product-item-status ${p.isApproved ? 'approved-text' : 'pending-text'}">
+              ${p.isApproved ? '✅ Approved • Stock: ' + p.stock : '⏳ Pending Approval'}
+            </div>
+          </div>
+          <div class="product-actions">
+            <button class="del-btn" onclick="deleteProduct('${p._id}')">🗑️</button>
+          </div>
+        </div>`).join('');
+    } catch (err) { console.error(err); }
+  }
+
+  function previewImages(input) {
+    const preview = document.getElementById('imagePreview');
+    preview.innerHTML = '';
+    Array.from(input.files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.className = 'preview-img';
+        preview.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function previewShopImg(input) {
+    const file = input.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.getElementById('shopImgPreview');
+        img.src = e.target.result;
+        img.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  async function addProduct() {
+    const name = document.getElementById('pName').value.trim();
+    const category = document.getElementById('pCategory').value;
+    const description = document.getElementById('pDesc').value.trim();
+    const price = document.getElementById('pPrice').value;
+    const stock = document.getElementById('pStock').value;
+    const files = document.getElementById('pImages').files;
+
+    if (!name || !category || !description || !price || !stock) {
+      showMsg('addProductMsg', '❌ Please fill all required fields!', 'error'); return;
+    }
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('category', category);
+    formData.append('description', description);
+    formData.append('price', price);
+    formData.append('discountPrice', document.getElementById('pDiscountPrice').value);
+    formData.append('stock', stock);
+    formData.append('volume', document.getElementById('pVolume').value);
+    formData.append('brand', document.getElementById('pBrand').value);
+    formData.append('tags', document.getElementById('pTags').value);
+    Array.from(files).forEach(f => formData.append('images', f));
+
+    try {
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token },
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showMsg('addProductMsg', '✅ Product submitted for approval!', 'success');
+        document.getElementById('pName').value = '';
+        document.getElementById('pDesc').value = '';
+        document.getElementById('pPrice').value = '';
+        document.getElementById('imagePreview').innerHTML = '';
+        loadProducts();
+      } else {
+        showMsg('addProductMsg', data.message, 'error');
+      }
+    } catch (err) {
+      showMsg('addProductMsg', '❌ Error adding product!', 'error');
+    }
+  }
+
+  async function deleteProduct(id) {
+    if (!confirm('Delete this product?')) return;
+    try {
+      const res = await fetch('/api/products/' + id, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      if (res.ok) { loadProducts(); alert('✅ Deleted!'); }
+      else alert(data.message);
+    } catch (err) { alert('Error!'); }
+  }
+
+  async function saveProfile() {
+    const formData = new FormData();
+    formData.append('name', document.getElementById('sName').value);
+    formData.append('shopName', document.getElementById('sShopName').value);
+    formData.append('shopDescription', document.getElementById('sShopDesc').value);
+    formData.append('city', document.getElementById('sCity').value);
+    formData.append('pincode', document.getElementById('sPincode').value);
+    formData.append('address', document.getElementById('sAddress').value);
+    const shopImg = document.getElementById('sShopImg').files[0];
+    if (shopImg) formData.append('shopImage', shopImg);
+
+    try {
+      const res = await fetch('/api/seller/profile', {
+        method: 'PUT',
+        headers: { 'Authorization': 'Bearer ' + token },
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok) { showMsg('profileMsg', '✅ Profile saved!', 'success'); loadProfile(); }
+      else showMsg('profileMsg', data.message, 'error');
+    } catch (err) { showMsg('profileMsg', '❌ Error!', 'error'); }
+  }
+
+  function showTab(tab, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    ['products', 'addProduct', 'orders', 'profile'].forEach(t => {
+      document.getElementById(t + 'Tab').style.display = t === tab ? 'block' : 'none';
+    });
+    if (tab === 'products') loadProducts();
+    if (tab === 'orders') loadSellerOrders();
+  }
+
+  async function loadSellerOrders() {
+    document.getElementById('sellerOrdersList').innerHTML = '<div class="no-items">⏳ Loading...</div>';
+    try {
+      const res = await fetch('/api/orders/my-orders', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      document.getElementById('statOrders').textContent = data.orders ? data.orders.length : 0;
+      if (!data.orders || !data.orders.length) {
+        document.getElementById('sellerOrdersList').innerHTML = '<div class="no-items">No orders yet!</div>'; return;
+      }
+      document.getElementById('sellerOrdersList').innerHTML = data.orders.map(o => `
+        <div class="order-card">
+          <div class="order-top">
+            <div class="order-id">#BD${o._id.slice(-6).toUpperCase()}</div>
+            <span class="order-status status-${o.status}">${o.status.replace('_', ' ').toUpperCase()}</span>
+          </div>
+          <div class="order-items-text">${o.items.map(i => i.name).join(', ')}</div>
+          <div class="order-amount">₹${o.finalAmount} • ${new Date(o.createdAt).toLocaleDateString()}</div>
+        </div>`).join('');
+    } catch (err) { document.getElementById('sellerOrdersList').innerHTML = '<div class="no-items">Error loading orders</div>'; }
+  }
+
+  function showMsg(id, msg, type) {
+    const el = document.getElementById(id);
+    el.className = 'msg ' + type;
+    el.textContent = msg;
+    setTimeout(() => { el.textContent = ''; el.className = 'msg'; }, 4000);
+  }
+
+  function logout() { localStorage.clear(); window.location.href = '/'; }
+
+  loadProfile();
+  loadProducts();
+</script>
+</body>
+</html>

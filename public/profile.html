@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BrewDash - Profile</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
+    body{background:#f2f2f2;}
+    .header{background:#1a1a2e;padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+    .back-btn{background:none;border:none;color:white;font-size:1.4rem;cursor:pointer;}
+    .header h3{color:white;font-size:1rem;flex:1;}
+    .logout-btn{background:#e94560;color:white;border:none;padding:6px 14px;border-radius:15px;font-size:0.8rem;cursor:pointer;}
+    .profile-hero{background:linear-gradient(135deg,#1a1a2e,#0f3460);padding:30px 20px;text-align:center;}
+    .avatar-wrap{position:relative;display:inline-block;margin-bottom:12px;}
+    .avatar{width:90px;height:90px;border-radius:50%;border:3px solid #e94560;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:2.5rem;overflow:hidden;}
+    .avatar img{width:100%;height:100%;object-fit:cover;}
+    .avatar-edit{position:absolute;bottom:0;right:0;background:#e94560;border:none;color:white;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:0.8rem;}
+    .profile-name{color:white;font-size:1.3rem;font-weight:bold;margin-bottom:3px;}
+    .profile-phone{color:rgba(255,255,255,0.7);font-size:0.85rem;margin-bottom:8px;}
+    .profile-badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+    .badge{background:rgba(255,255,255,0.1);color:white;padding:4px 12px;border-radius:15px;font-size:0.75rem;}
+    .stats-row{display:flex;background:white;padding:15px 20px;gap:5px;margin-bottom:8px;}
+    .stat{flex:1;text-align:center;padding:10px 5px;border-right:1px solid #f0f0f0;}
+    .stat:last-child{border-right:none;}
+    .stat-num{font-size:1.3rem;font-weight:bold;color:#e94560;}
+    .stat-label{font-size:0.72rem;color:#999;margin-top:3px;}
+    .tabs{display:flex;background:white;padding:5px;margin-bottom:8px;}
+    .tab{flex:1;padding:10px;border:none;background:transparent;color:#777;font-size:0.85rem;font-weight:bold;cursor:pointer;border-radius:8px;}
+    .tab.active{background:#e94560;color:white;}
+    .container{padding:0 15px 15px;}
+    .card{background:white;border-radius:12px;padding:18px;margin-bottom:10px;box-shadow:0 1px 5px rgba(0,0,0,0.05);}
+    .card-title{font-size:0.9rem;font-weight:bold;color:#333;margin-bottom:12px;}
+    .form-group{margin-bottom:12px;}
+    .form-group label{font-size:0.78rem;color:#777;display:block;margin-bottom:5px;font-weight:bold;}
+    .form-group input{width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:0.88rem;outline:none;}
+    .form-group input:focus{border-color:#e94560;}
+    .save-btn{width:100%;padding:12px;background:linear-gradient(135deg,#e94560,#c62a47);color:white;border:none;border-radius:10px;font-size:0.9rem;font-weight:bold;cursor:pointer;}
+    .order-card{background:#f9f9f9;border-radius:12px;padding:15px;margin-bottom:10px;border-left:4px solid #e94560;}
+    .order-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+    .order-id{font-weight:bold;font-size:0.88rem;color:#333;}
+    .order-status{padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:bold;}
+    .status-confirmed{background:#e8f4fd;color:#0072b1;}
+    .status-preparing{background:#fff8e6;color:#f5a623;}
+    .status-out_for_delivery{background:#e8f0fe;color:#4285f4;}
+    .status-delivered{background:#e8f8f0;color:#00a854;}
+    .status-cancelled{background:#fff0f3;color:#e94560;}
+    .status-pending{background:#f9f9f9;color:#777;}
+    .order-items-text{font-size:0.78rem;color:#777;margin-bottom:6px;}
+    .order-bottom{display:flex;justify-content:space-between;align-items:center;}
+    .order-amount{font-weight:bold;color:#e94560;font-size:0.9rem;}
+    .order-date{font-size:0.72rem;color:#aaa;}
+    .order-btn{background:#1a1a2e;color:white;border:none;padding:5px 12px;border-radius:8px;font-size:0.75rem;cursor:pointer;}
+    .no-orders{text-align:center;color:#aaa;padding:30px;}
+    .menu-item{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #f5f5f5;cursor:pointer;}
+    .menu-icon{font-size:1.3rem;width:35px;height:35px;background:#f9f9f9;border-radius:10px;display:flex;align-items:center;justify-content:center;}
+    .menu-text{flex:1;font-size:0.88rem;color:#333;font-weight:500;}
+    .menu-arrow{color:#aaa;font-size:1rem;}
+    .msg{padding:8px;border-radius:6px;font-size:0.82rem;margin-top:8px;text-align:center;}
+    .success{background:#e8f8f0;color:#00a854;}
+    .error{background:#fff0f3;color:#e94560;}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <button class="back-btn" onclick="window.location.href='/shop'">←</button>
+  <h3>My Profile</h3>
+  <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<!-- PROFILE HERO -->
+<div class="profile-hero">
+  <div class="avatar-wrap">
+    <div class="avatar" id="avatarDisplay">👤</div>
+    <button class="avatar-edit" onclick="document.getElementById('avatarInput').click()">✏️</button>
+    <input type="file" id="avatarInput" accept="image/*" style="display:none;" onchange="updateAvatar(this)"/>
+  </div>
+  <div class="profile-name" id="profileName">Loading...</div>
+  <div class="profile-phone" id="profilePhone"></div>
+  <div class="profile-badges">
+    <span class="badge" id="profileCity">📍 City</span>
+    <span class="badge">👤 Customer</span>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat"><div class="stat-num" id="statOrders">0</div><div class="stat-label">Orders</div></div>
+  <div class="stat"><div class="stat-num" id="statDelivered">0</div><div class="stat-label">Delivered</div></div>
+  <div class="stat"><div class="stat-num" id="statSpent">₹0</div><div class="stat-label">Total Spent</div></div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="showTab('orders',this)">📦 Orders</button>
+  <button class="tab" onclick="showTab('profile',this)">👤 Profile</button>
+  <button class="tab" onclick="showTab('settings',this)">⚙️ Settings</button>
+</div>
+
+<div class="container">
+
+  <!-- ORDERS TAB -->
+  <div id="ordersTab">
+    <div id="ordersList"><div class="no-orders">⏳ Loading orders...</div></div>
+  </div>
+
+  <!-- PROFILE TAB -->
+  <div id="profileTab" style="display:none;">
+    <div class="card">
+      <div class="card-title">✏️ Edit Profile</div>
+      <div class="form-group"><label>Full Name</label><input type="text" id="editName" placeholder="Your name"/></div>
+      <div class="form-group"><label>Email</label><input type="email" id="editEmail" placeholder="Email"/></div>
+      <div class="form-group"><label>Phone</label><input type="text" id="editPhone" placeholder="Phone" disabled style="background:#f9f9f9;"/></div>
+      <div class="form-group"><label>City</label><input type="text" id="editCity" placeholder="Your city"/></div>
+      <div class="form-group"><label>Full Address</label><input type="text" id="editAddress" placeholder="Full address"/></div>
+      <div class="form-group"><label>Pincode</label><input type="text" id="editPincode" placeholder="Pincode"/></div>
+      <button class="save-btn" onclick="saveProfile()">💾 Save Changes</button>
+      <div id="profileMsg" class="msg"></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS TAB -->
+  <div id="settingsTab" style="display:none;">
+    <div class="card">
+      <div class="card-title">⚙️ Settings</div>
+      <div class="menu-item" onclick="window.location.href='/location'">
+        <div class="menu-icon">📍</div><div class="menu-text">Change Location</div><div class="menu-arrow">›</div>
+      </div>
+      <div class="menu-item" onclick="window.location.href='/hiring'">
+        <div class="menu-icon">🛵</div><div class="menu-text">Become a Delivery Boy</div><div class="menu-arrow">›</div>
+      </div>
+      <div class="menu-item" onclick="alert('Coming soon!')">
+        <div class="menu-icon">🔔</div><div class="menu-text">Notifications</div><div class="menu-arrow">›</div>
+      </div>
+      <div class="menu-item" onclick="alert('Coming soon!')">
+        <div class="menu-icon">🔒</div><div class="menu-text">Change Password</div><div class="menu-arrow">›</div>
+      </div>
+      <div class="menu-item" onclick="alert('Coming soon!')">
+        <div class="menu-icon">💳</div><div class="menu-text">Payment Methods</div><div class="menu-arrow">›</div>
+      </div>
+      <div class="menu-item" onclick="alert('Coming soon!')">
+        <div class="menu-icon">❓</div><div class="menu-text">Help & Support</div><div class="menu-arrow">›</div>
+      </div>
+      <div class="menu-item" onclick="logout()">
+        <div class="menu-icon">🚪</div><div class="menu-text" style="color:#e94560;">Logout</div><div class="menu-arrow">›</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const token = localStorage.getItem('token');
+  if (!token) window.location.href = '/';
+
+  let userProfile = null;
+
+  async function loadProfile() {
+    try {
+      const res = await fetch('/api/auth/profile', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      if (data.success) {
+        userProfile = data.user;
+        renderProfile(data.user);
+      }
+    } catch (err) { console.error(err); }
+  }
+
+  function renderProfile(u) {
+    document.getElementById('profileName').textContent = u.name;
+    document.getElementById('profilePhone').textContent = '📱 ' + u.phone;
+    document.getElementById('profileCity').textContent = '📍 ' + (u.city || 'Not set');
+    if (u.avatar) document.getElementById('avatarDisplay').innerHTML = `<img src="${u.avatar}" alt="${u.name}"/>`;
+
+    document.getElementById('editName').value = u.name || '';
+    document.getElementById('editEmail').value = u.email || '';
+    document.getElementById('editPhone').value = u.phone || '';
+    document.getElementById('editCity').value = u.city || '';
+    document.getElementById('editAddress').value = u.address || '';
+    document.getElementById('editPincode').value = u.pincode || '';
+  }
+
+  async function loadOrders() {
+    try {
+      const res = await fetch('/api/orders/my-orders', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      if (data.success) {
+        const orders = data.orders;
+        const delivered = orders.filter(o => o.status === 'delivered').length;
+        const spent = orders.filter(o => o.status === 'delivered').reduce((a, o) => a + o.finalAmount, 0);
+        document.getElementById('statOrders').textContent = orders.length;
+        document.getElementById('statDelivered').textContent = delivered;
+        document.getElementById('statSpent').textContent = '₹' + spent;
+
+        if (!orders.length) {
+          document.getElementById('ordersList').innerHTML = '<div class="no-orders">📦 No orders yet!<br><br><button onclick="window.location.href=\'/shop\'" style="padding:10px 20px;background:#e94560;color:white;border:none;border-radius:8px;cursor:pointer;">Start Shopping</button></div>';
+          return;
+        }
+
+        document.getElementById('ordersList').innerHTML = orders.map(o => `
+          <div class="order-card">
+            <div class="order-top">
+              <div class="order-id">#BD${o._id.slice(-6).toUpperCase()}</div>
+              <span class="order-status status-${o.status}">${o.status.replace('_', ' ').toUpperCase()}</span>
+            </div>
+            <div class="order-items-text">${o.items.map(i => i.name + ' x' + i.quantity).join(', ')}</div>
+            <div class="order-bottom">
+              <div class="order-amount">₹${o.finalAmount}</div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <div class="order-date">${new Date(o.createdAt).toLocaleDateString()}</div>
+                <button class="order-btn" onclick="window.location.href='/tracking?id=${o._id}'">Track</button>
+              </div>
+            </div>
+          </div>`).join('');
+      }
+    } catch (err) { console.error(err); }
+  }
+
+  async function saveProfile() {
+    const body = {
+      name: document.getElementById('editName').value,
+      email: document.getElementById('editEmail').value,
+      city: document.getElementById('editCity').value,
+      address: document.getElementById('editAddress').value,
+      pincode: document.getElementById('editPincode').value
+    };
+    try {
+      const res = await fetch('/api/auth/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      const msg = document.getElementById('profileMsg');
+      if (res.ok) {
+        msg.className = 'msg success';
+        msg.textContent = '✅ Profile updated!';
+        localStorage.setItem('user', JSON.stringify(data.user));
+        renderProfile(data.user);
+      } else {
+        msg.className = 'msg error';
+        msg.textContent = data.message;
+      }
+      setTimeout(() => msg.textContent = '', 3000);
+    } catch (err) { alert('Error saving profile!'); }
+  }
+
+  async function updateAvatar(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('image', file);
+    try {
+      const res = await fetch('/api/auth/profile', {
+        method: 'PUT',
+        headers: { 'Authorization': 'Bearer ' + token },
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok) {
+        document.getElementById('avatarDisplay').innerHTML = `<img src="${data.user.avatar}" alt="avatar"/>`;
+        alert('✅ Photo updated!');
+      }
+    } catch (err) { alert('Error updating photo!'); }
+  }
+
+  function showTab(tab, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('ordersTab').style.display = tab === 'orders' ? 'block' : 'none';
+    document.getElementById('profileTab').style.display = tab === 'profile' ? 'block' : 'none';
+    document.getElementById('settingsTab').style.display = tab === 'settings' ? 'block' : 'none';
+  }
+
+  function logout() {
+    localStorage.clear();
+    window.location.href = '/';
+  }
+
+  loadProfile();
+  loadOrders();
+</script>
+</body>
+</html>

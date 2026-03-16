@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BrewDash - Food & Snacks</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
+    body{background:#f2f2f2;}
+    .header{background:#1a1a2e;padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+    .back-btn{background:none;border:none;color:white;font-size:1.4rem;cursor:pointer;}
+    .header h3{color:white;font-size:1rem;flex:1;}
+    .cart-btn{background:#e94560;color:white;border:none;padding:7px 14px;border-radius:15px;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;gap:5px;}
+    .badge{background:white;color:#e94560;border-radius:50%;padding:1px 6px;font-size:0.72rem;font-weight:bold;}
+    .banner{background:linear-gradient(135deg,#ff6b35,#f7931e);padding:25px 20px;color:white;}
+    .banner h1{font-size:1.5rem;margin-bottom:5px;}
+    .banner p{color:rgba(255,255,255,0.85);font-size:0.85rem;}
+    .search-box{padding:12px 20px;background:white;border-bottom:1px solid #eee;}
+    .search-input{width:100%;padding:10px 18px;border-radius:20px;border:1px solid #ddd;font-size:0.88rem;outline:none;background:#f9f9f9;}
+    .filter-tabs{display:flex;gap:8px;padding:12px 20px;background:white;margin-bottom:8px;overflow-x:auto;}
+    .filter-tab{padding:7px 15px;border-radius:20px;border:1px solid #ddd;background:white;font-size:0.8rem;cursor:pointer;white-space:nowrap;}
+    .filter-tab.active{background:#ff6b35;color:white;border-color:#ff6b35;}
+    .section{padding:15px 20px;}
+    .section-title{font-size:1rem;font-weight:bold;color:#333;margin-bottom:12px;}
+    .food-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px;}
+    .food-card{background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);cursor:pointer;transition:transform 0.2s;}
+    .food-card:hover{transform:translateY(-3px);}
+    .food-img{width:100%;height:120px;background:linear-gradient(135deg,#ff6b35,#f7931e);display:flex;align-items:center;justify-content:center;font-size:2.5rem;overflow:hidden;position:relative;}
+    .food-img img{width:100%;height:100%;object-fit:cover;}
+    .food-badge{position:absolute;top:6px;left:6px;background:#ff6b35;color:white;font-size:0.65rem;padding:2px 6px;border-radius:8px;font-weight:bold;}
+    .food-info{padding:10px;}
+    .food-name{font-size:0.85rem;font-weight:bold;color:#333;margin-bottom:2px;}
+    .food-shop{font-size:0.7rem;color:#999;margin-bottom:5px;}
+    .food-footer{display:flex;justify-content:space-between;align-items:center;}
+    .food-price{font-size:0.92rem;font-weight:bold;color:#ff6b35;}
+    .add-btn{background:#ff6b35;color:white;border:none;width:26px;height:26px;border-radius:50%;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+    .combo-card{background:white;border-radius:12px;padding:15px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);display:flex;gap:12px;align-items:center;cursor:pointer;}
+    .combo-img{font-size:2.5rem;width:60px;height:60px;background:linear-gradient(135deg,#ff6b35,#f7931e);border-radius:10px;display:flex;align-items:center;justify-content:center;}
+    .combo-info{flex:1;}
+    .combo-name{font-weight:bold;font-size:0.9rem;color:#333;margin-bottom:3px;}
+    .combo-desc{font-size:0.75rem;color:#999;margin-bottom:5px;}
+    .combo-footer{display:flex;justify-content:space-between;align-items:center;}
+    .combo-price{font-weight:bold;color:#ff6b35;}
+    .combo-add{background:#ff6b35;color:white;border:none;padding:5px 12px;border-radius:8px;font-size:0.78rem;cursor:pointer;}
+    .overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:200;}
+    .cart-drawer{position:fixed;right:0;top:0;width:320px;height:100%;background:white;z-index:300;transform:translateX(100%);transition:transform 0.3s;display:flex;flex-direction:column;}
+    .cart-drawer.open{transform:translateX(0);}
+    .cart-head{padding:15px 20px;background:#1a1a2e;color:white;display:flex;justify-content:space-between;align-items:center;}
+    .cart-body{flex:1;overflow-y:auto;padding:15px;}
+    .cart-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f5f5f5;}
+    .cart-item-name{font-size:0.85rem;font-weight:bold;}
+    .cart-item-price{color:#ff6b35;font-size:0.82rem;font-weight:bold;}
+    .qty-ctrl{display:flex;align-items:center;gap:6px;}
+    .qty-btn{background:#ff6b35;color:white;border:none;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:0.8rem;}
+    .cart-foot{padding:15px;border-top:1px solid #eee;}
+    .cart-total{display:flex;justify-content:space-between;margin-bottom:10px;font-weight:bold;}
+    .checkout-btn{width:100%;padding:12px;background:linear-gradient(135deg,#ff6b35,#e94560);color:white;border:none;border-radius:10px;font-weight:bold;cursor:pointer;}
+    .empty-cart{text-align:center;color:#aaa;padding:30px;}
+    .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:white;padding:10px 20px;border-radius:20px;font-size:0.82rem;z-index:9999;opacity:0;transition:opacity 0.3s;white-space:nowrap;}
+    .toast.show{opacity:1;}
+    .no-items{text-align:center;color:#aaa;padding:30px;grid-column:1/-1;}
+    .close-btn{background:none;border:none;color:white;font-size:1.2rem;cursor:pointer;}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <button class="back-btn" onclick="window.location.href='/shop'">←</button>
+  <h3>🍗 Food & Snacks</h3>
+  <button class="cart-btn" onclick="openCart()">🛒 <span class="badge" id="cartCount">0</span></button>
+</div>
+
+<div class="banner">
+  <h1>🍗 Food & Snacks</h1>
+  <p>Perfect companions for your drinks! Order food with your drinks 🍺</p>
+</div>
+
+<div class="search-box">
+  <input class="search-input" type="text" placeholder="🔍 Search food, snacks..." oninput="searchFood(this.value)"/>
+</div>
+
+<div class="filter-tabs">
+  <div class="filter-tab active" onclick="filterFood('all',this)">🍽️ All</div>
+  <div class="filter-tab" onclick="filterFood('food',this)">🍗 Food</div>
+  <div class="filter-tab" onclick="filterFood('snacks',this)">🥜 Snacks</div>
+</div>
+
+<!-- COMBOS -->
+<div class="section">
+  <div class="section-title">🔥 Popular Combos</div>
+  <div id="comboList">
+    <div class="combo-card">
+      <div class="combo-img">🍗🍺</div>
+      <div class="combo-info">
+        <div class="combo-name">Chicken 65 + Beer Combo</div>
+        <div class="combo-desc">Crispy chicken with chilled beer</div>
+        <div class="combo-footer"><span class="combo-price">₹450</span><button class="combo-add" onclick="addComboToCart('Chicken 65 + Beer Combo',450)">+ Add</button></div>
+      </div>
+    </div>
+    <div class="combo-card">
+      <div class="combo-img">🐟🥃</div>
+      <div class="combo-info">
+        <div class="combo-name">Fish Fry + Whiskey Combo</div>
+        <div class="combo-desc">Spicy fish fry with premium whiskey</div>
+        <div class="combo-footer"><span class="combo-price">₹680</span><button class="combo-add" onclick="addComboToCart('Fish Fry + Whiskey Combo',680)">+ Add</button></div>
+      </div>
+    </div>
+    <div class="combo-card">
+      <div class="combo-img">🥜🍷</div>
+      <div class="combo-info">
+        <div class="combo-name">Peanut Masala + Wine Combo</div>
+        <div class="combo-desc">Spicy peanuts with red wine</div>
+        <div class="combo-footer"><span class="combo-price">₹720</span><button class="combo-add" onclick="addComboToCart('Peanut Masala + Wine Combo',720)">+ Add</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOD ITEMS -->
+<div class="section">
+  <div class="section-title" id="foodSectionTitle">🍗 All Food & Snacks</div>
+  <div class="food-grid" id="foodGrid">
+    <div style="color:#aaa;padding:20px;grid-column:1/-1;text-align:center;">Loading...</div>
+  </div>
+</div>
+
+<!-- CART -->
+<div class="overlay" id="overlay" onclick="closeCart()"></div>
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-head">
+    <h3>🛒 Cart</h3>
+    <button class="close-btn" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-body" id="cartBody"></div>
+  <div class="cart-foot">
+    <div class="cart-total"><span>Total:</span><span id="cartTotal">₹0</span></div>
+    <button class="checkout-btn" onclick="window.location.href='/checkout'">Checkout →</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const token = localStorage.getItem('token');
+  if (!token) window.location.href = '/';
+
+  let allFood = [];
+  let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+
+  async function loadFood() {
+    try {
+      const res = await fetch('/api/products/food-snacks', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      if (data.success) {
+        allFood = data.products;
+        renderFood(allFood);
+      } else {
+        document.getElementById('foodGrid').innerHTML = '<div class="no-items">No food items available</div>';
+      }
+    } catch (err) {
+      document.getElementById('foodGrid').innerHTML = '<div class="no-items">Error loading items</div>';
+    }
+  }
+
+  function renderFood(items) {
+    const grid = document.getElementById('foodGrid');
+    if (!items.length) { grid.innerHTML = '<div class="no-items">😔 No items found</div>'; return; }
+    grid.innerHTML = items.map(p => `
+      <div class="food-card" onclick="window.location.href='/product?id=${p._id}'">
+        <div class="food-img">
+          ${p.images && p.images.length ? `<img src="${p.images[0]}" alt="${p.name}" onerror="this.parentElement.innerHTML='🍗'"/>` : (p.category === 'food' ? '🍗' : '🥜')}
+          <div class="food-badge">${p.category.toUpperCase()}</div>
+        </div>
+        <div class="food-info">
+          <div class="food-name">${p.name}</div>
+          <div class="food-shop">🏪 ${p.seller ? p.seller.shopName : 'BrewDash'}</div>
+          <div class="food-footer">
+            <div class="food-price">₹${p.price}</div>
+            <button class="add-btn" onclick="event.stopPropagation();addToCart('${p._id}','${p.name}','${p.seller ? p.seller.shopName : ''}',${p.price},'${p.images && p.images.length ? p.images[0] : ''}')">+</button>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  function filterFood(type, el) {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    if (type === 'all') renderFood(allFood);
+    else renderFood(allFood.filter(p => p.category === type));
+  }
+
+  function searchFood(query) {
+    const q = query.toLowerCase();
+    renderFood(allFood.filter(p => p.name.toLowerCase().includes(q) || (p.seller && p.seller.shopName.toLowerCase().includes(q))));
+  }
+
+  function addToCart(id, name, shop, price, image) {
+    const existing = cart.find(c => c.id === id);
+    if (existing) { existing.qty += 1; } else { cart.push({ id, name, shop, price, image, qty: 1 }); }
+    saveCart();
+    showToast('✅ ' + name + ' added!');
+  }
+
+  function addComboToCart(name, price) {
+    const existing = cart.find(c => c.id === 'combo_' + name);
+    if (existing) { existing.qty += 1; } else { cart.push({ id: 'combo_' + name, name, shop: 'BrewDash', price, image: '', qty: 1 }); }
+    saveCart();
+    showToast('✅ ' + name + ' added!');
+  }
+
+  function saveCart() {
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateCartUI();
+  }
+
+  function updateCartUI() {
+    const count = cart.reduce((a, c) => a + c.qty, 0);
+    const total = cart.reduce((a, c) => a + c.price * c.qty, 0);
+    document.getElementById('cartCount').textContent = count;
+    document.getElementById('cartTotal').textContent = '₹' + total;
+    const body = document.getElementById('cartBody');
+    if (!cart.length) { body.innerHTML = '<div class="empty-cart">🛒<br>Cart is empty!</div>'; return; }
+    body.innerHTML = cart.map(item => `
+      <div class="cart-item">
+        <div><div class="cart-item-name">${item.name}</div><div class="cart-item-price">₹${item.price * item.qty}</div></div>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="changeQty('${item.id}',-1)">-</button>
+          <span>${item.qty}</span>
+          <button class="qty-btn" onclick="changeQty('${item.id}',1)">+</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function changeQty(id, change) {
+    const item = cart.find(c => c.id === id);
+    if (item) { item.qty += change; if (item.qty <= 0) cart = cart.filter(c => c.id !== id); }
+    saveCart();
+  }
+
+  function openCart() { document.getElementById('cartDrawer').classList.add('open'); document.getElementById('overlay').style.display = 'block'; }
+  function closeCart() { document.getElementById('cartDrawer').classList.remove('open'); document.getElementById('overlay').style.display = 'none'; }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  updateCartUI();
+  loadFood();
+</script>
+</body>
+</html>

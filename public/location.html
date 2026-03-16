@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BrewDash - Set Location</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
+    body{background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px;}
+    .card{background:white;border-radius:20px;padding:30px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+    .header{text-align:center;margin-bottom:25px;}
+    .header h1{font-size:1.6rem;color:#1a1a2e;margin-bottom:5px;}
+    .header p{color:#777;font-size:0.9rem;}
+    .loc-btn{width:100%;padding:15px;border:none;border-radius:12px;cursor:pointer;font-size:1rem;font-weight:bold;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:10px;transition:transform 0.2s;}
+    .loc-btn:hover{transform:translateY(-2px);}
+    .btn-primary{background:linear-gradient(135deg,#e94560,#c62a47);color:white;}
+    .btn-secondary{background:#f0f0f0;color:#333;}
+    .status{padding:12px;border-radius:10px;margin:10px 0;font-size:0.85rem;text-align:center;min-height:20px;}
+    .success{background:#e8f8f0;color:#00a854;}
+    .error{background:#fff0f3;color:#e94560;}
+    .warning{background:#fff8e6;color:#f5a623;}
+    .map-box{width:100%;height:200px;border-radius:12px;overflow:hidden;margin:10px 0;display:none;border:1px solid #eee;}
+    .addr-input{width:100%;padding:12px 16px;border:1px solid #ddd;border-radius:10px;font-size:0.9rem;outline:none;margin-bottom:10px;resize:none;}
+    .addr-input:focus{border-color:#e94560;}
+    .saved-section{margin-top:15px;}
+    .saved-title{font-size:0.85rem;color:#777;font-weight:bold;margin-bottom:10px;}
+    .saved-card{display:flex;align-items:center;gap:12px;padding:12px;border:2px solid #eee;border-radius:10px;cursor:pointer;margin-bottom:8px;transition:border 0.2s;}
+    .saved-card:hover,.saved-card.active{border-color:#e94560;background:#fff0f3;}
+    .saved-icon{font-size:1.5rem;}
+    .saved-label{font-weight:bold;font-size:0.88rem;color:#333;}
+    .saved-addr{font-size:0.75rem;color:#999;}
+    .divider{text-align:center;color:#aaa;margin:15px 0;font-size:0.85rem;position:relative;}
+    .divider::before,.divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:#eee;}
+    .divider::before{left:0;}
+    .divider::after{right:0;}
+    .availability{padding:15px;border-radius:12px;margin:10px 0;text-align:center;}
+    .available{background:#e8f8f0;border:2px solid #00c864;}
+    .unavailable{background:#fff0f3;border:2px solid #e94560;}
+    .availability h3{font-size:1rem;font-weight:bold;margin-bottom:5px;}
+    .availability p{font-size:0.85rem;color:#777;}
+    .confirm-btn{width:100%;padding:15px;background:linear-gradient(135deg,#e94560,#c62a47);color:white;border:none;border-radius:12px;font-size:1rem;font-weight:bold;cursor:pointer;margin-top:15px;display:none;}
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="header">
+    <div style="font-size:2.5rem;margin-bottom:10px;">📍</div>
+    <h1>Set Delivery Location</h1>
+    <p>We'll check if BrewDash delivers to your area</p>
+  </div>
+
+  <button class="loc-btn btn-primary" onclick="getCurrentLocation()">
+    📍 Use Current Location
+  </button>
+  <button class="loc-btn btn-secondary" onclick="enableManual()">
+    ✏️ Enter Address Manually
+  </button>
+
+  <div class="status" id="locStatus"></div>
+
+  <div class="map-box" id="mapBox">
+    <iframe id="mapFrame" width="100%" height="200" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+  </div>
+
+  <textarea class="addr-input" id="addressInput" rows="2" placeholder="Your address will appear here..." style="display:none;"></textarea>
+
+  <div id="availabilityBox"></div>
+
+  <div class="divider">Saved Addresses</div>
+
+  <div class="saved-section">
+    <div id="savedList"></div>
+  </div>
+
+  <button class="confirm-btn" id="confirmBtn" onclick="confirmLocation()">
+    ✅ Confirm & Continue to Shop →
+  </button>
+</div>
+
+<script>
+  const token = localStorage.getItem('token');
+  if (!token) window.location.href = '/';
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  let selectedAddress = '';
+  let selectedCity = '';
+
+  const savedAddresses = [
+    { icon: '🏠', label: 'Home', address: user.address || '', city: user.city || '' },
+    { icon: '💼', label: 'Work', address: '', city: '' },
+  ];
+
+  function renderSaved() {
+    document.getElementById('savedList').innerHTML = savedAddresses.filter(a => a.address).map((a, i) => `
+      <div class="saved-card" onclick="selectSaved(${i}, this)">
+        <div class="saved-icon">${a.icon}</div>
+        <div>
+          <div class="saved-label">${a.label}</div>
+          <div class="saved-addr">${a.address}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function selectSaved(i, el) {
+    document.querySelectorAll('.saved-card').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    selectedAddress = savedAddresses[i].address;
+    selectedCity = savedAddresses[i].city;
+    document.getElementById('addressInput').value = selectedAddress;
+    document.getElementById('addressInput').style.display = 'block';
+    checkAvailability(selectedCity);
+  }
+
+  function getCurrentLocation() {
+    const status = document.getElementById('locStatus');
+    status.className = 'status warning';
+    status.textContent = '⏳ Getting your location...';
+
+    if (!navigator.geolocation) {
+      status.className = 'status error';
+      status.textContent = '❌ Location not supported on this browser';
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      status.textContent = '⏳ Fetching address...';
+
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+        const data = await res.json();
+        selectedAddress = data.display_name;
+        selectedCity = data.address.city || data.address.town || data.address.village || '';
+
+        document.getElementById('addressInput').value = selectedAddress;
+        document.getElementById('addressInput').style.display = 'block';
+
+        const mapFrame = document.getElementById('mapFrame');
+        mapFrame.src = `https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.01},${lat-0.01},${lng+0.01},${lat+0.01}&layer=mapnik&marker=${lat},${lng}`;
+        document.getElementById('mapBox').style.display = 'block';
+
+        status.className = 'status success';
+        status.textContent = '✅ Location detected: ' + selectedCity;
+
+        // Save to localStorage
+        localStorage.setItem('userLocation', JSON.stringify({ address: selectedAddress, city: selectedCity, lat, lng }));
+
+        checkAvailability(selectedCity);
+
+        // Add to saved
+        const exists = savedAddresses.find(a => a.label === 'Current');
+        if (!exists) { savedAddresses.unshift({ icon: '📍', label: 'Current', address: selectedAddress, city: selectedCity }); renderSaved(); }
+
+      } catch (e) {
+        status.className = 'status error';
+        status.textContent = '❌ Could not fetch address. Please enter manually.';
+        enableManual();
+      }
+    }, (err) => {
+      status.className = 'status error';
+      status.textContent = err.code === 1 ? '❌ Location permission denied. Please enter manually.' : '❌ Could not get location.';
+      enableManual();
+    });
+  }
+
+  function enableManual() {
+    document.getElementById('addressInput').style.display = 'block';
+    document.getElementById('addressInput').focus();
+    document.getElementById('addressInput').oninput = function() {
+      selectedAddress = this.value;
+      selectedCity = this.value.split(',').pop().trim();
+      checkAvailability(selectedCity);
+    };
+  }
+
+  function checkAvailability(city) {
+    const box = document.getElementById('availabilityBox');
+    const confirmBtn = document.getElementById('confirmBtn');
+
+    // Serviceable cities - you can update this list
+    const serviceableCities = ['chennai', 'bangalore', 'mumbai', 'delhi', 'hyderabad', 'pune', 'kolkata', 'coimbatore', 'madurai', 'trichy'];
+    const isAvailable = serviceableCities.some(c => city.toLowerCase().includes(c));
+
+    if (isAvailable) {
+      box.innerHTML = `
+        <div class="availability available">
+          <h3>✅ BrewDash Delivers Here!</h3>
+          <p>Great news! We deliver to ${city}</p>
+        </div>`;
+      confirmBtn.style.display = 'block';
+    } else if (city) {
+      box.innerHTML = `
+        <div class="availability unavailable">
+          <h3>😔 Not Available Yet</h3>
+          <p>We don't deliver to ${city} yet. Coming soon!</p>
+        </div>`;
+      confirmBtn.style.display = 'none';
+    }
+  }
+
+  function confirmLocation() {
+    const address = document.getElementById('addressInput').value.trim();
+    if (!address) { alert('Please enter your address!'); return; }
+    localStorage.setItem('userLocation', JSON.stringify({ address, city: selectedCity }));
+    window.location.href = '/shop';
+  }
+
+  renderSaved();
+</script>
+</body>
+</html>

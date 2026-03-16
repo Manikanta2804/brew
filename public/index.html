@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BrewDash - Login</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
+    body{background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px;}
+    .container{background:rgba(255,255,255,0.05);backdrop-filter:blur(10px);border-radius:20px;padding:40px;width:100%;max-width:420px;text-align:center;border:1px solid rgba(255,255,255,0.1);box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+    .logo{font-size:3rem;margin-bottom:5px;}
+    .logo-text{color:#fff;font-size:1.8rem;font-weight:bold;margin-bottom:3px;}
+    .subtitle{color:#aaa;font-size:0.85rem;margin-bottom:20px;}
+    .role-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;}
+    .role-tab{flex:1;padding:9px 5px;border:2px solid rgba(255,255,255,0.15);border-radius:10px;cursor:pointer;font-size:0.78rem;color:#aaa;text-align:center;transition:all 0.2s;min-width:70px;background:transparent;}
+    .role-tab.active{border-color:#e94560;color:#e94560;background:rgba(233,69,96,0.1);}
+    .tabs{display:flex;gap:5px;background:rgba(255,255,255,0.05);padding:5px;border-radius:12px;margin-bottom:20px;}
+    .tab{flex:1;padding:10px;border:none;border-radius:8px;cursor:pointer;font-size:0.9rem;font-weight:bold;background:transparent;color:#aaa;transition:all 0.3s;}
+    .tab.active{background:#e94560;color:white;}
+    .form-box{display:flex;flex-direction:column;gap:11px;}
+    input{padding:12px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;font-size:0.9rem;outline:none;transition:border 0.3s;width:100%;}
+    input::placeholder{color:#aaa;}
+    input:focus{border-color:#e94560;}
+    .btn{padding:13px;background:linear-gradient(135deg,#e94560,#c62a47);color:white;border:none;border-radius:10px;font-size:1rem;font-weight:bold;cursor:pointer;transition:transform 0.2s;margin-top:5px;width:100%;}
+    .btn:hover{transform:translateY(-2px);}
+    .btn-outline{background:transparent;border:1px solid rgba(255,255,255,0.3);color:#aaa;padding:10px;border-radius:10px;width:100%;cursor:pointer;font-size:0.85rem;margin-top:3px;}
+    .btn-outline:hover{border-color:#e94560;color:#e94560;}
+    .msg{padding:10px;border-radius:8px;font-size:0.85rem;margin-top:5px;min-height:20px;text-align:left;}
+    .success{background:rgba(0,200,100,0.2);color:#00c864;}
+    .error{background:rgba(233,69,96,0.2);color:#e94560;}
+    .hidden{display:none!important;}
+    .divider{color:rgba(255,255,255,0.3);font-size:0.78rem;text-align:center;padding:5px 0;}
+    .seller-extra{display:none;flex-direction:column;gap:11px;}
+    .link-row{margin-top:15px;display:flex;justify-content:center;gap:15px;flex-wrap:wrap;}
+    .link{color:#e94560;cursor:pointer;font-size:0.82rem;text-decoration:underline;}
+    .forgot-link{color:#aaa;font-size:0.8rem;cursor:pointer;text-align:right;margin-top:-5px;}
+    .forgot-link:hover{color:#e94560;}
+    .otp-inputs{display:flex;gap:8px;justify-content:center;margin:10px 0;}
+    .otp-box{width:45px;height:50px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;font-size:1.3rem;text-align:center;outline:none;}
+    .otp-box:focus{border-color:#e94560;}
+    .method-row{display:flex;gap:8px;margin-bottom:5px;}
+    .method-btn{flex:1;padding:10px;border:1px solid rgba(255,255,255,0.2);border-radius:8px;background:transparent;color:#aaa;cursor:pointer;font-size:0.82rem;transition:all 0.2s;}
+    .method-btn.active{border-color:#e94560;color:#e94560;background:rgba(233,69,96,0.1);}
+    .back-btn{background:none;border:none;color:#aaa;cursor:pointer;font-size:0.82rem;display:flex;align-items:center;gap:5px;margin-bottom:10px;}
+    .back-btn:hover{color:#e94560;}
+    .step-indicator{display:flex;justify-content:center;gap:8px;margin-bottom:15px;}
+    .step{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.2);}
+    .step.active{background:#e94560;}
+    .step.done{background:#00c864;}
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="logo">🍺</div>
+  <div class="logo-text">BrewDash</div>
+  <div class="subtitle">Drinks & Bites Delivered Fast! 🚀</div>
+
+  <!-- ROLE TABS -->
+  <div class="role-tabs" id="roleTabs">
+    <div class="role-tab active" onclick="setRole('customer',this)">👤 Customer</div>
+    <div class="role-tab" onclick="setRole('seller',this)">🏪 Seller</div>
+    <div class="role-tab" onclick="setRole('delivery',this)">🛵 Delivery</div>
+    <div class="role-tab" onclick="setRole('admin',this)">👑 Admin</div>
+  </div>
+
+  <!-- AUTH TABS -->
+  <div class="tabs" id="authTabs">
+    <button class="tab active" onclick="showTab('login',this)">Login</button>
+    <button class="tab" onclick="showTab('register',this)">Register</button>
+  </div>
+
+  <!-- LOGIN FORM -->
+  <div id="loginForm" class="form-box">
+    <input type="text" id="loginPhone" placeholder="📱 Phone Number"/>
+    <input type="password" id="loginPassword" placeholder="🔒 Password"/>
+    <input type="password" id="adminSecret" placeholder="🔑 Admin Secret Key" class="hidden"/>
+    <div class="forgot-link" onclick="showForgot()">Forgot Password?</div>
+    <button class="btn" onclick="login()">Login →</button>
+    <div id="loginMsg" class="msg"></div>
+  </div>
+
+  <!-- REGISTER FORM -->
+  <div id="registerForm" class="form-box hidden">
+    <input type="text" id="regName" placeholder="👤 Full Name *"/>
+    <input type="text" id="regPhone" placeholder="📱 Phone Number *"/>
+    <input type="email" id="regEmail" placeholder="📧 Email (optional)"/>
+    <input type="password" id="regPassword" placeholder="🔒 Password (min 6 chars) *"/>
+    <input type="text" id="regCity" placeholder="🏙️ City"/>
+    <input type="text" id="regAddress" placeholder="🏠 Full Address"/>
+    <div class="seller-extra" id="sellerExtra">
+      <div class="divider">─── Seller Information ───</div>
+      <input type="text" id="shopName" placeholder="🏪 Shop Name *"/>
+      <input type="text" id="shopDesc" placeholder="📝 Shop Description"/>
+      <input type="text" id="licenseNum" placeholder="📄 License Number"/>
+      <input type="text" id="pincode" placeholder="📮 Pincode"/>
+    </div>
+    <button class="btn" onclick="register()">Create Account →</button>
+    <div id="registerMsg" class="msg"></div>
+  </div>
+
+  <!-- FORGOT PASSWORD FORM -->
+  <div id="forgotForm" class="form-box hidden">
+    <button class="back-btn" onclick="hideForgot()">← Back to Login</button>
+
+    <!-- STEP 1: Enter Phone -->
+    <div id="forgotStep1">
+      <div style="color:white;font-size:1rem;font-weight:bold;margin-bottom:5px;">🔐 Forgot Password</div>
+      <div style="color:#aaa;font-size:0.82rem;margin-bottom:15px;">Enter your phone number to receive OTP</div>
+      <div class="step-indicator">
+        <div class="step active" id="s1"></div>
+        <div class="step" id="s2"></div>
+        <div class="step" id="s3"></div>
+      </div>
+      <input type="text" id="forgotPhone" placeholder="📱 Phone Number"/>
+      <div style="color:#aaa;font-size:0.78rem;margin:5px 0;">Send OTP via:</div>
+      <div class="method-row">
+        <button class="method-btn active" id="methodSms" onclick="selectMethod('sms',this)">📱 SMS</button>
+        <button class="method-btn" id="methodEmail" onclick="selectMethod('email',this)">📧 Email</button>
+      </div>
+      <button class="btn" onclick="sendOtp()">Send OTP →</button>
+      <div id="forgotMsg1" class="msg"></div>
+    </div>
+
+    <!-- STEP 2: Enter OTP -->
+    <div id="forgotStep2" class="hidden">
+      <div style="color:white;font-size:1rem;font-weight:bold;margin-bottom:5px;">📱 Enter OTP</div>
+      <div style="color:#aaa;font-size:0.82rem;margin-bottom:15px;" id="otpSentTo">OTP sent to your phone</div>
+      <div class="step-indicator">
+        <div class="step done" id="s1b"></div>
+        <div class="step active" id="s2b"></div>
+        <div class="step" id="s3b"></div>
+      </div>
+      <div class="otp-inputs">
+        <input class="otp-box" type="number" id="otp1" maxlength="1" oninput="moveNext(this,'otp2')"/>
+        <input class="otp-box" type="number" id="otp2" maxlength="1" oninput="moveNext(this,'otp3')"/>
+        <input class="otp-box" type="number" id="otp3" maxlength="1" oninput="moveNext(this,'otp4')"/>
+        <input class="otp-box" type="number" id="otp4" maxlength="1" oninput="moveNext(this,'otp5')"/>
+        <input class="otp-box" type="number" id="otp5" maxlength="1" oninput="moveNext(this,'otp6')"/>
+        <input class="otp-box" type="number" id="otp6" maxlength="1"/>
+      </div>
+      <div id="otpTimer" style="color:#aaa;font-size:0.78rem;text-align:center;margin-bottom:5px;"></div>
+      <button class="btn" onclick="verifyOtp()">Verify OTP →</button>
+      <button class="btn-outline" onclick="sendOtp()">Resend OTP</button>
+      <div id="forgotMsg2" class="msg"></div>
+    </div>
+
+    <!-- STEP 3: New Password -->
+    <div id="forgotStep3" class="hidden">
+      <div style="color:white;font-size:1rem;font-weight:bold;margin-bottom:5px;">🔒 New Password</div>
+      <div style="color:#aaa;font-size:0.82rem;margin-bottom:15px;">Create a strong new password</div>
+      <div class="step-indicator">
+        <div class="step done"></div>
+        <div class="step done"></div>
+        <div class="step active"></div>
+      </div>
+      <input type="password" id="newPassword" placeholder="🔒 New Password (min 6 chars)"/>
+      <input type="password" id="confirmPassword" placeholder="🔒 Confirm New Password"/>
+      <button class="btn" onclick="resetPassword()">Reset Password →</button>
+      <div id="forgotMsg3" class="msg"></div>
+    </div>
+  </div>
+
+  <div class="link-row" id="linkRow">
+    <span class="link" onclick="window.location.href='/hiring'">🛵 Apply as Delivery Boy</span>
+    <span class="link" onclick="window.location.href='/hiring'">📋 Check Application</span>
+  </div>
+</div>
+
+<script>
+  let currentRole = 'customer';
+  let selectedMethod = 'sms';
+  let verifiedOtp = '';
+  let otpTimerInterval = null;
+
+  // Redirect if already logged in
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  if (token) {
+    if (role === 'admin') window.location.href = '/admin';
+    else if (role === 'seller') window.location.href = '/seller';
+    else if (role === 'delivery') window.location.href = '/delivery';
+    else window.location.href = '/shop';
+  }
+
+  function setRole(role, el) {
+    currentRole = role;
+    document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('adminSecret').classList.toggle('hidden', role !== 'admin');
+    document.getElementById('sellerExtra').style.display = role === 'seller' ? 'flex' : 'none';
+    if (role === 'admin' || role === 'delivery') {
+      document.getElementById('authTabs').classList.add('hidden');
+      document.getElementById('loginForm').classList.remove('hidden');
+      document.getElementById('registerForm').classList.add('hidden');
+    } else {
+      document.getElementById('authTabs').classList.remove('hidden');
+    }
+  }
+
+  function showTab(tab, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
+    document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
+  }
+
+  function showForgot() {
+    document.getElementById('loginForm').classList.add('hidden');
+    document.getElementById('registerForm').classList.add('hidden');
+    document.getElementById('authTabs').classList.add('hidden');
+    document.getElementById('roleTabs').classList.add('hidden');
+    document.getElementById('linkRow').classList.add('hidden');
+    document.getElementById('forgotForm').classList.remove('hidden');
+  }
+
+  function hideForgot() {
+    document.getElementById('forgotForm').classList.add('hidden');
+    document.getElementById('loginForm').classList.remove('hidden');
+    document.getElementById('authTabs').classList.remove('hidden');
+    document.getElementById('roleTabs').classList.remove('hidden');
+    document.getElementById('linkRow').classList.remove('hidden');
+    resetForgotForm();
+  }
+
+  function resetForgotForm() {
+    document.getElementById('forgotStep1').classList.remove('hidden');
+    document.getElementById('forgotStep2').classList.add('hidden');
+    document.getElementById('forgotStep3').classList.add('hidden');
+    document.getElementById('forgotPhone').value = '';
+    ['otp1','otp2','otp3','otp4','otp5','otp6'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmPassword').value = '';
+    if (otpTimerInterval) clearInterval(otpTimerInterval);
+  }
+
+  function selectMethod(method, el) {
+    selectedMethod = method;
+    document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  async function sendOtp() {
+    const phone = document.getElementById('forgotPhone').value.trim();
+    if (!phone) { showMsg('forgotMsg1', '❌ Please enter phone number!', 'error'); return; }
+
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, method: selectedMethod })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        showMsg('forgotMsg1', data.message, 'success');
+
+        // In development show OTP
+        if (data.otp) {
+          showMsg('forgotMsg1', '✅ OTP: ' + data.otp + ' (Dev mode)', 'success');
+        }
+
+        setTimeout(() => {
+          document.getElementById('forgotStep1').classList.add('hidden');
+          document.getElementById('forgotStep2').classList.remove('hidden');
+          document.getElementById('otpSentTo').textContent = 'OTP sent to ' + (selectedMethod === 'email' ? 'your email' : phone);
+          startOtpTimer(600);
+        }, 1000);
+      } else {
+        showMsg('forgotMsg1', data.message, 'error');
+      }
+    } catch (err) {
+      showMsg('forgotMsg1', '❌ Server error!', 'error');
+    }
+  }
+
+  function moveNext(current, nextId) {
+    if (current.value.length >= 1) {
+      const next = document.getElementById(nextId);
+      if (next) next.focus();
+    }
+  }
+
+  function startOtpTimer(seconds) {
+    if (otpTimerInterval) clearInterval(otpTimerInterval);
+    let remaining = seconds;
+    const timerEl = document.getElementById('otpTimer');
+    otpTimerInterval = setInterval(() => {
+      const mins = Math.floor(remaining / 60);
+      const secs = remaining % 60;
+      timerEl.textContent = `⏱️ OTP expires in ${mins}:${secs.toString().padStart(2,'0')}`;
+      remaining--;
+      if (remaining < 0) {
+        clearInterval(otpTimerInterval);
+        timerEl.textContent = '❌ OTP expired! Please resend.';
+        timerEl.style.color = '#e94560';
+      }
+    }, 1000);
+  }
+
+  function verifyOtp() {
+    const otp = ['otp1','otp2','otp3','otp4','otp5','otp6'].map(id => document.getElementById(id).value).join('');
+    if (otp.length !== 6) { showMsg('forgotMsg2', '❌ Please enter complete 6-digit OTP!', 'error'); return; }
+    verifiedOtp = otp;
+    document.getElementById('forgotStep2').classList.add('hidden');
+    document.getElementById('forgotStep3').classList.remove('hidden');
+  }
+
+  async function resetPassword() {
+    const phone = document.getElementById('forgotPhone').value.trim();
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (!newPassword || !confirmPassword) { showMsg('forgotMsg3', '❌ Please fill all fields!', 'error'); return; }
+    if (newPassword.length < 6) { showMsg('forgotMsg3', '❌ Password must be at least 6 characters!', 'error'); return; }
+    if (newPassword !== confirmPassword) { showMsg('forgotMsg3', '❌ Passwords do not match!', 'error'); return; }
+
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, otp: verifiedOtp, newPassword })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        showMsg('forgotMsg3', data.message, 'success');
+        setTimeout(() => { hideForgot(); }, 2000);
+      } else {
+        showMsg('forgotMsg3', data.message, 'error');
+      }
+    } catch (err) {
+      showMsg('forgotMsg3', '❌ Server error!', 'error');
+    }
+  }
+
+  async function login() {
+    const phone = document.getElementById('loginPhone').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if (!phone || !password) { showMsg('loginMsg', '❌ Please fill all fields!', 'error'); return; }
+
+    try {
+      let url = '/api/auth/login';
+      let body = { phone, password };
+      if (currentRole === 'admin') {
+        url = '/api/auth/admin-login';
+        body.adminSecret = document.getElementById('adminSecret').value;
+        if (!body.adminSecret) { showMsg('loginMsg', '❌ Please enter admin secret key!', 'error'); return; }
+      } else if (currentRole === 'seller') {
+        url = '/api/seller/login';
+      } else if (currentRole === 'delivery') {
+        url = '/api/delivery/login';
+      }
+
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('role', currentRole);
+        showMsg('loginMsg', '✅ Login successful!', 'success');
+        setTimeout(() => {
+          if (currentRole === 'admin') window.location.href = '/admin';
+          else if (currentRole === 'seller') window.location.href = '/seller';
+          else if (currentRole === 'delivery') window.location.href = '/delivery';
+          else window.location.href = '/location';
+        }, 800);
+      } else {
+        showMsg('loginMsg', data.message, 'error');
+      }
+    } catch (err) {
+      showMsg('loginMsg', '❌ Server error! Try again.', 'error');
+    }
+  }
+
+  async function register() {
+    const name = document.getElementById('regName').value.trim();
+    const phone = document.getElementById('regPhone').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const email = document.getElementById('regEmail').value.trim();
+    const city = document.getElementById('regCity').value.trim();
+    const address = document.getElementById('regAddress').value.trim();
+
+    if (!name || !phone || !password) { showMsg('registerMsg', '❌ Name, phone and password are required!', 'error'); return; }
+    if (password.length < 6) { showMsg('registerMsg', '❌ Password must be at least 6 characters!', 'error'); return; }
+
+    try {
+      let url = '/api/auth/register';
+      let body = { name, phone, password, email, city, address };
+
+      if (currentRole === 'seller') {
+        const shopName = document.getElementById('shopName').value.trim();
+        if (!shopName) { showMsg('registerMsg', '❌ Shop name is required!', 'error'); return; }
+        url = '/api/seller/register';
+        body.shopName = shopName;
+        body.shopDescription = document.getElementById('shopDesc').value.trim();
+        body.licenseNumber = document.getElementById('licenseNum').value.trim();
+        body.pincode = document.getElementById('pincode').value.trim() || '000000';
+      }
+
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const data = await res.json();
+
+      if (res.ok) {
+        showMsg('registerMsg', data.message, 'success');
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          localStorage.setItem('role', 'customer');
+          setTimeout(() => window.location.href = '/location', 1000);
+        }
+      } else {
+        showMsg('registerMsg', data.message, 'error');
+      }
+    } catch (err) {
+      showMsg('registerMsg', '❌ Server error! Try again.', 'error');
+    }
+  }
+
+  function showMsg(id, msg, type) {
+    const el = document.getElementById(id);
+    el.className = 'msg ' + type;
+    el.textContent = msg;
+    setTimeout(() => { el.textContent = ''; el.className = 'msg'; }, 5000);
+  }
+</script>
+</body>
+</html>

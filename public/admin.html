@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BrewDash - Admin Panel</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
+    body{background:#f2f2f2;}
+    .sidebar{position:fixed;left:0;top:0;width:220px;height:100%;background:#1a1a2e;z-index:100;display:flex;flex-direction:column;}
+    .sidebar-logo{padding:20px;border-bottom:1px solid rgba(255,255,255,0.1);}
+    .sidebar-logo h2{color:white;font-size:1.1rem;}
+    .sidebar-logo p{color:#aaa;font-size:0.72rem;margin-top:3px;}
+    .sidebar-menu{flex:1;padding:10px 0;overflow-y:auto;}
+    .menu-item{display:flex;align-items:center;gap:10px;padding:12px 20px;cursor:pointer;transition:background 0.2s;color:#aaa;font-size:0.85rem;}
+    .menu-item:hover,.menu-item.active{background:rgba(233,69,96,0.2);color:white;}
+    .menu-item.active{border-left:3px solid #e94560;}
+    .menu-icon{font-size:1.1rem;width:20px;text-align:center;}
+    .sidebar-footer{padding:15px 20px;border-top:1px solid rgba(255,255,255,0.1);}
+    .logout-btn{width:100%;padding:10px;background:#e94560;color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem;}
+    .main{margin-left:220px;min-height:100vh;}
+    .top-bar{background:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 5px rgba(0,0,0,0.05);position:sticky;top:0;z-index:50;}
+    .top-bar h2{font-size:1.1rem;color:#333;}
+    .admin-badge{background:#e94560;color:white;padding:4px 12px;border-radius:12px;font-size:0.78rem;}
+    .content{padding:20px 25px;}
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px;}
+    .stat-card{background:white;border-radius:12px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+    .stat-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+    .stat-icon{font-size:1.8rem;}
+    .stat-change{font-size:0.72rem;color:#00a854;background:#e8f8f0;padding:3px 8px;border-radius:8px;}
+    .stat-num{font-size:1.6rem;font-weight:bold;color:#333;}
+    .stat-label{font-size:0.75rem;color:#999;margin-top:3px;}
+    .card{background:white;border-radius:12px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:15px;}
+    .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding-bottom:10px;border-bottom:1px solid #f0f0f0;}
+    .card-title{font-size:0.95rem;font-weight:bold;color:#333;}
+    .table{width:100%;border-collapse:collapse;}
+    .table th{background:#f9f9f9;padding:10px 12px;text-align:left;font-size:0.78rem;color:#777;font-weight:bold;border-bottom:1px solid #eee;}
+    .table td{padding:10px 12px;font-size:0.82rem;color:#333;border-bottom:1px solid #f9f9f9;vertical-align:middle;}
+    .table tr:hover td{background:#fafafa;}
+    .badge{display:inline-block;padding:3px 8px;border-radius:8px;font-size:0.72rem;font-weight:bold;}
+    .badge-success{background:#e8f8f0;color:#00a854;}
+    .badge-warning{background:#fff8e6;color:#f5a623;}
+    .badge-danger{background:#fff0f3;color:#e94560;}
+    .badge-info{background:#e8f4fd;color:#0072b1;}
+    .badge-purple{background:#f3e8ff;color:#7c3aed;}
+    .action-btn{padding:5px 10px;border:none;border-radius:6px;font-size:0.75rem;cursor:pointer;margin-right:4px;}
+    .btn-approve{background:#e8f8f0;color:#00a854;}
+    .btn-reject{background:#fff0f3;color:#e94560;}
+    .btn-view{background:#e8f4fd;color:#0072b1;}
+    .btn-assign{background:#f3e8ff;color:#7c3aed;}
+    .btn-primary{background:#e94560;color:white;padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-size:0.82rem;}
+    .search-bar{display:flex;gap:10px;margin-bottom:15px;}
+    .search-input{flex:1;padding:9px 15px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem;outline:none;}
+    .filter-select{padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.82rem;outline:none;}
+    .tab-content{display:none;}
+    .tab-content.active{display:block;}
+    .img-thumb{width:40px;height:40px;border-radius:8px;object-fit:cover;background:#f0f0f0;}
+    .no-data{text-align:center;color:#aaa;padding:30px;}
+    .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;justify-content:center;align-items:center;}
+    .modal.open{display:flex;}
+    .modal-content{background:white;border-radius:15px;padding:25px;width:90%;max-width:500px;max-height:90vh;overflow-y:auto;}
+    .modal-title{font-size:1rem;font-weight:bold;color:#333;margin-bottom:15px;}
+    .modal-close{float:right;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#aaa;}
+    .form-group{margin-bottom:12px;}
+    .form-group label{font-size:0.78rem;color:#777;display:block;margin-bottom:4px;font-weight:bold;}
+    .form-group input,.form-group select,.form-group textarea{width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem;outline:none;}
+    .form-group input:focus{border-color:#e94560;}
+    .submit-btn{width:100%;padding:12px;background:linear-gradient(135deg,#e94560,#c62a47);color:white;border:none;border-radius:8px;font-size:0.9rem;font-weight:bold;cursor:pointer;}
+    .transaction-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f5f5f5;}
+    .txn-info .txn-id{font-weight:bold;font-size:0.85rem;}
+    .txn-info .txn-method{font-size:0.72rem;color:#777;margin-top:2px;}
+    .txn-amount{font-weight:bold;color:#00a854;}
+    .profile-img{width:45px;height:45px;border-radius:50%;object-fit:cover;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:1.2rem;}
+    @media(max-width:768px){.sidebar{display:none;}.main{margin-left:0;}.stats-grid{grid-template-columns:repeat(2,1fr);}}
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <h2>🍺 BrewDash</h2>
+    <p>Admin Dashboard</p>
+  </div>
+  <div class="sidebar-menu">
+    <div class="menu-item active" onclick="showTab('dashboard',this)"><div class="menu-icon">📊</div>Dashboard</div>
+    <div class="menu-item" onclick="showTab('orders',this)"><div class="menu-icon">📦</div>Orders</div>
+    <div class="menu-item" onclick="showTab('products',this)"><div class="menu-icon">🍺</div>Products</div>
+    <div class="menu-item" onclick="showTab('sellers',this)"><div class="menu-icon">🏪</div>Sellers</div>
+    <div class="menu-item" onclick="showTab('delivery',this)"><div class="menu-icon">🛵</div>Delivery Boys</div>
+    <div class="menu-item" onclick="showTab('hiring',this)"><div class="menu-icon">📋</div>Hiring</div>
+    <div class="menu-item" onclick="showTab('users',this)"><div class="menu-icon">👥</div>Users</div>
+    <div class="menu-item" onclick="showTab('transactions',this)"><div class="menu-icon">💳</div>Transactions</div>
+  </div>
+  <div class="sidebar-footer">
+    <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="top-bar">
+    <h2 id="pageTitle">Dashboard</h2>
+    <span class="admin-badge">👑 Admin</span>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="tab-content active" id="dashboardTab">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-top"><div class="stat-icon">👥</div><div class="stat-change">Users</div></div><div class="stat-num" id="statUsers">0</div><div class="stat-label">Total Customers</div></div>
+        <div class="stat-card"><div class="stat-top"><div class="stat-icon">📦</div><div class="stat-change">Orders</div></div><div class="stat-num" id="statOrders">0</div><div class="stat-label">Total Orders</div></div>
+        <div class="stat-card"><div class="stat-top"><div class="stat-icon">💰</div><div class="stat-change">Revenue</div></div><div class="stat-num" id="statRevenue">₹0</div><div class="stat-label">Total Revenue</div></div>
+        <div class="stat-card"><div class="stat-top"><div class="stat-icon">🏪</div><div class="stat-change">Sellers</div></div><div class="stat-num" id="statSellers">0</div><div class="stat-label">Total Sellers</div></div>
+        <div class="stat-card"><div class="stat-top"><div class="stat-icon">🛵</div><div class="stat-change">Active</div></div><div class="stat-num" id="statDelivery">0</div><div class="stat-label">Delivery Boys</div></div>
+        <div class="stat-card"><div class="stat-top"><div class="stat-icon">🍺</div><div class="stat-change">Products</div></div><div class="stat-num" id="statProducts">0</div><div class="stat-label">Total Products</div></div>
+        <div class="stat-card"><div class="stat-top"><div class="stat-icon">⏳</div><div class="stat-change">Pending</div></div><div class="stat-num" id="statPendingOrders">0</div><div class="stat-label">Pending Orders</div></div>
+        <div class="stat-card"><div class="stat-top"><div class="stat-icon">📅</div><div class="stat-change">Today</div></div><div class="stat-num" id="statToday">0</div><div class="stat-label">Today's Orders</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">⚡ Quick Actions</div></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn-primary" onclick="showTab('hiring',document.querySelectorAll('.menu-item')[5])">📋 Review Applications</button>
+          <button class="btn-primary" onclick="showTab('products',document.querySelectorAll('.menu-item')[2])">🍺 Approve Products</button>
+          <button class="btn-primary" onclick="showTab('sellers',document.querySelectorAll('.menu-item')[3])">🏪 Approve Sellers</button>
+          <button class="btn-primary" onclick="showTab('orders',document.querySelectorAll('.menu-item')[1])">📦 Manage Orders</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORDERS -->
+    <div class="tab-content" id="ordersTab">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📦 All Orders</div>
+          <select class="filter-select" onchange="filterOrders(this.value)">
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="preparing">Preparing</option>
+            <option value="out_for_delivery">Out for Delivery</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="table">
+            <thead><tr><th>Order ID</th><th>Customer</th><th>Amount</th><th>Payment</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="ordersTable"><tr><td colspan="7" class="no-data">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div class="tab-content" id="productsTab">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🍺 Products (Approval Required)</div>
+          <select class="filter-select" onchange="filterProducts(this.value)">
+            <option value="">All</option>
+            <option value="pending">Pending Approval</option>
+            <option value="approved">Approved</option>
+          </select>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="table">
+            <thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Seller</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="productsTable"><tr><td colspan="7" class="no-data">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SELLERS -->
+    <div class="tab-content" id="sellersTab">
+      <div class="card">
+        <div class="card-header"><div class="card-title">🏪 Sellers</div></div>
+        <div style="overflow-x:auto;">
+          <table class="table">
+            <thead><tr><th>Shop</th><th>Owner</th><th>Phone</th><th>City</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="sellersTable"><tr><td colspan="6" class="no-data">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- DELIVERY BOYS -->
+    <div class="tab-content" id="deliveryTab">
+      <div class="card">
+        <div class="card-header"><div class="card-title">🛵 Delivery Boys</div></div>
+        <div style="overflow-x:auto;">
+          <table class="table">
+            <thead><tr><th>Name</th><th>Phone</th><th>Vehicle</th><th>City</th><th>Deliveries</th><th>Status</th></tr></thead>
+            <tbody id="deliveryTable"><tr><td colspan="6" class="no-data">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- HIRING -->
+    <div class="tab-content" id="hiringTab">
+      <div class="card">
+        <div class="card-header"><div class="card-title">📋 Hiring Applications</div></div>
+        <div style="overflow-x:auto;">
+          <table class="table">
+            <thead><tr><th>Photo</th><th>Name</th><th>Phone</th><th>Vehicle</th><th>City</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="hiringTable"><tr><td colspan="7" class="no-data">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="tab-content" id="usersTab">
+      <div class="card">
+        <div class="card-header"><div class="card-title">👥 All Users</div></div>
+        <div style="overflow-x:auto;">
+          <table class="table">
+            <thead><tr><th>Name</th><th>Phone</th><th>City</th><th>Joined</th></tr></thead>
+            <tbody id="usersTable"><tr><td colspan="4" class="no-data">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <div class="tab-content" id="transactionsTab">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">💳 Payment Transactions</div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="table">
+            <thead><tr><th>Transaction ID</th><th>Customer</th><th>Amount</th><th>Method</th><th>UPI App</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody id="transactionsTable"><tr><td colspan="7" class="no-data">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ASSIGN DELIVERY MODAL -->
+<div class="modal" id="assignModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('assignModal')">✕</button>
+    <div class="modal-title">🛵 Assign Delivery Boy</div>
+    <input type="hidden" id="assignOrderId"/>
+    <div class="form-group">
+      <label>Select Delivery Boy</label>
+      <select id="deliveryBoySelect"></select>
+    </div>
+    <button class="submit-btn" onclick="assignDelivery()">✅ Assign</button>
+  </div>
+</div>
+
+<!-- HIRING APPROVE MODAL -->
+<div class="modal" id="hiringModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('hiringModal')">✕</button>
+    <div class="modal-title" id="hiringModalTitle">Review Application</div>
+    <input type="hidden" id="hiringAppId"/>
+    <div id="hiringAppDetails" style="background:#f9f9f9;border-radius:10px;padding:15px;margin-bottom:15px;font-size:0.85rem;"></div>
+    <div class="form-group"><label>Admin Note</label><textarea id="adminNote" rows="2" placeholder="Optional note..."></textarea></div>
+    <div class="form-group"><label>Initial Password (for approved)</label><input type="text" id="deliveryPassword" placeholder="Default: BrewDash@123"/></div>
+    <div style="display:flex;gap:10px;">
+      <button class="submit-btn" style="background:linear-gradient(135deg,#00a854,#00c864);" onclick="updateHiring('approved')">✅ Approve</button>
+      <button class="submit-btn" style="background:linear-gradient(135deg,#e94560,#c62a47);" onclick="updateHiring('rejected')">❌ Reject</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  if (!token || role !== 'admin') window.location.href = '/';
+
+  let allOrders = [];
+  let allProducts = [];
+  let allDeliveryBoys = [];
+
+  // LOAD DASHBOARD
+  async function loadDashboard() {
+    try {
+      const res = await fetch('/api/admin/dashboard', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      if (data.success) {
+        const s = data.stats;
+        document.getElementById('statUsers').textContent = s.totalUsers;
+        document.getElementById('statOrders').textContent = s.totalOrders;
+        document.getElementById('statRevenue').textContent = '₹' + s.totalRevenue.toLocaleString();
+        document.getElementById('statSellers').textContent = s.totalSellers;
+        document.getElementById('statDelivery').textContent = s.totalDeliveryBoys;
+        document.getElementById('statProducts').textContent = s.totalProducts;
+        document.getElementById('statPendingOrders').textContent = s.pendingOrders;
+        document.getElementById('statToday').textContent = s.todayOrders;
+      }
+    } catch (err) { console.error(err); }
+  }
+
+  // LOAD ORDERS
+  async function loadOrders() {
+    try {
+      const res = await fetch('/api/admin/orders', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      allOrders = data.orders || [];
+      renderOrders(allOrders);
+    } catch (err) { console.error(err); }
+  }
+
+  function renderOrders(orders) {
+    const tbody = document.getElementById('ordersTable');
+    if (!orders.length) { tbody.innerHTML = '<tr><td colspan="7" class="no-data">No orders found</td></tr>'; return; }
+    tbody.innerHTML = orders.map(o => `
+      <tr>
+        <td><strong>#BD${o._id.slice(-6).toUpperCase()}</strong></td>
+        <td>${o.customer ? o.customer.name + '<br><small style="color:#999;">' + o.customer.phone + '</small>' : 'N/A'}</td>
+        <td><strong style="color:#e94560;">₹${o.finalAmount}</strong></td>
+        <td><span class="badge ${o.paymentMethod === 'cash' ? 'badge-warning' : 'badge-success'}">${o.paymentMethod.toUpperCase()}</span></td>
+        <td><span class="badge ${getStatusBadge(o.status)}">${o.status.replace('_',' ').toUpperCase()}</span></td>
+        <td>${new Date(o.createdAt).toLocaleDateString()}</td>
+        <td>
+          ${o.status !== 'delivered' && o.status !== 'cancelled' ? `<button class="action-btn btn-assign" onclick="openAssignModal('${o._id}')">🛵 Assign</button>` : ''}
+          <button class="action-btn btn-view" onclick="window.open('/tracking?id=${o._id}','_blank')">👁️ View</button>
+        </td>
+      </tr>`).join('');
+  }
+
+  function filterOrders(status) {
+    if (!status) renderOrders(allOrders);
+    else renderOrders(allOrders.filter(o => o.status === status));
+  }
+
+  // LOAD PRODUCTS
+  async function loadProducts() {
+    try {
+      const res = await fetch('/api/products?', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      allProducts = data.products || [];
+      renderProducts(allProducts);
+    } catch (err) { console.error(err); }
+  }
+
+  function renderProducts(products) {
+    const tbody = document.getElementById('productsTable');
+    if (!products.length) { tbody.innerHTML = '<tr><td colspan="7" class="no-data">No products found</td></tr>'; return; }
+    tbody.innerHTML = products.map(p => `
+      <tr>
+        <td>${p.images && p.images.length ? `<img src="${p.images[0]}" class="img-thumb" onerror="this.src=''"/>` : '<div class="img-thumb" style="display:flex;align-items:center;justify-content:center;">🍺</div>'}</td>
+        <td><strong>${p.name}</strong><br><small style="color:#999;">${p.brand || ''}</small></td>
+        <td><span class="badge badge-info">${p.category.toUpperCase()}</span></td>
+        <td><strong>₹${p.price}</strong>${p.discountPrice ? `<br><small style="color:#00a854;">₹${p.discountPrice}</small>` : ''}</td>
+        <td>${p.seller ? p.seller.shopName : 'N/A'}</td>
+        <td><span class="badge ${p.isApproved ? 'badge-success' : 'badge-warning'}">${p.isApproved ? 'APPROVED' : 'PENDING'}</span></td>
+        <td>
+          ${!p.isApproved ? `<button class="action-btn btn-approve" onclick="approveProduct('${p._id}',true)">✅ Approve</button>` : `<button class="action-btn btn-reject" onclick="approveProduct('${p._id}',false)">❌ Reject</button>`}
+        </td>
+      </tr>`).join('');
+  }
+
+  function filterProducts(status) {
+    if (!status) renderProducts(allProducts);
+    else if (status === 'pending') renderProducts(allProducts.filter(p => !p.isApproved));
+    else renderProducts(allProducts.filter(p => p.isApproved));
+  }
+
+  async function approveProduct(id, approve) {
+    try {
+      const res = await fetch('/api/admin/products/' + id + '/approve', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ isApproved: approve })
+      });
+      const data = await res.json();
+      if (res.ok) { loadProducts(); alert(data.message); }
+      else alert(data.message);
+    } catch (err) { alert('Error!'); }
+  }
+
+  // LOAD SELLERS
+  async function loadSellers() {
+    try {
+      const res = await fetch('/api/admin/sellers', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      const tbody = document.getElementById('sellersTable');
+      if (!data.sellers || !data.sellers.length) { tbody.innerHTML = '<tr><td colspan="6" class="no-data">No sellers found</td></tr>'; return; }
+      tbody.innerHTML = data.sellers.map(s => `
+        <tr>
+          <td><strong>${s.shopName}</strong></td>
+          <td>${s.name}</td>
+          <td>${s.phone}</td>
+          <td>${s.city}</td>
+          <td><span class="badge ${s.isApproved ? 'badge-success' : 'badge-warning'}">${s.isApproved ? 'APPROVED' : 'PENDING'}</span></td>
+          <td>
+            ${!s.isApproved ? `<button class="action-btn btn-approve" onclick="updateSeller('${s._id}',true)">✅ Approve</button>` : `<button class="action-btn btn-reject" onclick="updateSeller('${s._id}',false)">❌ Suspend</button>`}
+          </td>
+        </tr>`).join('');
+    } catch (err) { console.error(err); }
+  }
+
+  async function updateSeller(id, approve) {
+    try {
+      const res = await fetch('/api/admin/sellers/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ isApproved: approve })
+      });
+      const data = await res.json();
+      if (res.ok) { loadSellers(); alert(data.message); }
+    } catch (err) { alert('Error!'); }
+  }
+
+  // LOAD DELIVERY BOYS
+  async function loadDeliveryBoys() {
+    try {
+      const res = await fetch('/api/admin/delivery-boys', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      allDeliveryBoys = data.deliveryBoys || [];
+      const tbody = document.getElementById('deliveryTable');
+      if (!allDeliveryBoys.length) { tbody.innerHTML = '<tr><td colspan="6" class="no-data">No delivery boys found</td></tr>'; return; }
+      tbody.innerHTML = allDeliveryBoys.map(d => `
+        <tr>
+          <td><strong>${d.name}</strong></td>
+          <td>${d.phone}</td>
+          <td>🛵 ${d.vehicleType} - ${d.vehicleNumber}</td>
+          <td>${d.city}</td>
+          <td>${d.totalDeliveries}</td>
+          <td><span class="badge ${d.isActive ? 'badge-success' : 'badge-warning'}">${d.isActive ? 'ACTIVE' : 'INACTIVE'}</span></td>
+        </tr>`).join('');
+
+      // Fill delivery boy select for assign modal
+      document.getElementById('deliveryBoySelect').innerHTML = allDeliveryBoys.filter(d => d.isActive).map(d => `<option value="${d._id}">${d.name} - ${d.phone} (${d.vehicleType})</option>`).join('');
+    } catch (err) { console.error(err); }
+  }
+
+  // LOAD HIRING
+  async function loadHiring() {
+    try {
+      const res = await fetch('/api/admin/hiring', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      const tbody = document.getElementById('hiringTable');
+      if (!data.applications || !data.applications.length) { tbody.innerHTML = '<tr><td colspan="7" class="no-data">No applications found</td></tr>'; return; }
+      tbody.innerHTML = data.applications.map(a => `
+        <tr>
+          <td>${a.photo ? `<img src="${a.photo}" class="img-thumb" style="border-radius:50%;" onerror="this.src=''"/>` : '<div class="profile-img">👤</div>'}</td>
+          <td><strong>${a.name}</strong><br><small style="color:#999;">${a.age} yrs</small></td>
+          <td>${a.phone}</td>
+          <td>🛵 ${a.vehicleType}<br><small>${a.vehicleNumber}</small></td>
+          <td>${a.city}, ${a.area}</td>
+          <td><span class="badge ${a.status === 'approved' ? 'badge-success' : a.status === 'rejected' ? 'badge-danger' : 'badge-warning'}">${a.status.toUpperCase()}</span></td>
+          <td>${a.status === 'pending' ? `<button class="action-btn btn-view" onclick="openHiringModal('${a._id}','${a.name}','${a.phone}','${a.vehicleType}','${a.city}')">📋 Review</button>` : `<small style="color:#aaa;">${a.adminNote || ''}</small>`}</td>
+        </tr>`).join('');
+    } catch (err) { console.error(err); }
+  }
+
+  function openHiringModal(id, name, phone, vehicle, city) {
+    document.getElementById('hiringAppId').value = id;
+    document.getElementById('hiringModalTitle').textContent = '📋 Review: ' + name;
+    document.getElementById('hiringAppDetails').innerHTML = `<strong>👤 ${name}</strong><br>📱 ${phone}<br>🛵 ${vehicle}<br>📍 ${city}`;
+    document.getElementById('adminModal').style.display = 'none';
+    document.getElementById('hiringModal').classList.add('open');
+  }
+
+  async function updateHiring(status) {
+    const id = document.getElementById('hiringAppId').value;
+    const adminNote = document.getElementById('adminNote').value;
+    const password = document.getElementById('deliveryPassword').value || 'BrewDash@123';
+    try {
+      const res = await fetch('/api/admin/hiring/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ status, adminNote, password })
+      });
+      const data = await res.json();
+      if (res.ok) { closeModal('hiringModal'); loadHiring(); alert(data.message); }
+      else alert(data.message);
+    } catch (err) { alert('Error!'); }
+  }
+
+  // LOAD USERS
+  async function loadUsers() {
+    try {
+      const res = await fetch('/api/admin/users', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      const tbody = document.getElementById('usersTable');
+      if (!data.users || !data.users.length) { tbody.innerHTML = '<tr><td colspan="4" class="no-data">No users found</td></tr>'; return; }
+      tbody.innerHTML = data.users.map(u => `
+        <tr>
+          <td><strong>${u.name}</strong></td>
+          <td>${u.phone}</td>
+          <td>${u.city || 'N/A'}</td>
+          <td>${new Date(u.createdAt).toLocaleDateString()}</td>
+        </tr>`).join('');
+    } catch (err) { console.error(err); }
+  }
+
+  // LOAD TRANSACTIONS
+  async function loadTransactions() {
+    try {
+      const res = await fetch('/api/admin/transactions', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      const tbody = document.getElementById('transactionsTable');
+      if (!data.payments || !data.payments.length) { tbody.innerHTML = '<tr><td colspan="7" class="no-data">No transactions found</td></tr>'; return; }
+      tbody.innerHTML = data.payments.map(p => `
+        <tr>
+          <td><strong style="font-size:0.78rem;">${p.transactionId || 'N/A'}</strong></td>
+          <td>${p.customer ? p.customer.name + '<br><small>' + p.customer.phone + '</small>' : 'N/A'}</td>
+          <td><strong style="color:#00a854;">₹${p.amount}</strong></td>
+          <td><span class="badge ${p.method === 'cash' ? 'badge-warning' : p.method === 'upi' ? 'badge-info' : 'badge-purple'}">${p.method.toUpperCase()}</span></td>
+          <td>${p.upiApp || '-'}</td>
+          <td><span class="badge ${p.status === 'success' ? 'badge-success' : p.status === 'pending' ? 'badge-warning' : 'badge-danger'}">${p.status.toUpperCase()}</span></td>
+          <td>${new Date(p.createdAt).toLocaleDateString()}</td>
+        </tr>`).join('');
+    } catch (err) { console.error(err); }
+  }
+
+  // ASSIGN DELIVERY MODAL
+  function openAssignModal(orderId) {
+    document.getElementById('assignOrderId').value = orderId;
+    document.getElementById('assignModal').classList.add('open');
+    loadDeliveryBoys();
+  }
+
+  async function assignDelivery() {
+    const orderId = document.getElementById('assignOrderId').value;
+    const deliveryBoyId = document.getElementById('deliveryBoySelect').value;
+    try {
+      const res = await fetch('/api/admin/orders/' + orderId + '/assign', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ deliveryBoyId })
+      });
+      const data = await res.json();
+      if (res.ok) { closeModal('assignModal'); loadOrders(); alert('✅ Delivery boy assigned!'); }
+      else alert(data.message);
+    } catch (err) { alert('Error!'); }
+  }
+
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  function getStatusBadge(status) {
+    const map = { pending:'badge-warning', confirmed:'badge-info', preparing:'badge-warning', out_for_delivery:'badge-purple', delivered:'badge-success', cancelled:'badge-danger' };
+    return map[status] || 'badge-warning';
+  }
+
+  function showTab(tab, el) {
+    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.getElementById(tab + 'Tab').classList.add('active');
+    const titles = { dashboard:'Dashboard', orders:'All Orders', products:'Products', sellers:'Sellers', delivery:'Delivery Boys', hiring:'Hiring Applications', users:'Users', transactions:'Transactions' };
+    document.getElementById('pageTitle').textContent = titles[tab] || tab;
+    if (tab === 'dashboard') loadDashboard();
+    else if (tab === 'orders') loadOrders();
+    else if (tab === 'products') loadProducts();
+    else if (tab === 'sellers') loadSellers();
+    else if (tab === 'delivery') loadDeliveryBoys();
+    else if (tab === 'hiring') loadHiring();
+    else if (tab === 'users') loadUsers();
+    else if (tab === 'transactions') loadTransactions();
+  }
+
+  function logout() { localStorage.clear(); window.location.href = '/'; }
+
+  // Init
+  loadDashboard();
+</script>
+</body>
+</html>

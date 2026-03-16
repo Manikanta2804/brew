@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BrewDash - Delivery Panel</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
+    body{background:#f2f2f2;}
+    .header{background:#1a1a2e;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;}
+    .header-left .logo{color:#fff;font-size:1.1rem;font-weight:bold;}
+    .header-left .name{color:#aaa;font-size:0.75rem;}
+    .header-right{display:flex;gap:8px;align-items:center;}
+    .available-toggle{display:flex;align-items:center;gap:6px;}
+    .toggle-label{color:white;font-size:0.78rem;}
+    .toggle{width:40px;height:22px;background:#555;border-radius:11px;cursor:pointer;position:relative;transition:background 0.3s;}
+    .toggle.on{background:#00c864;}
+    .toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;background:white;border-radius:50%;transition:left 0.3s;}
+    .toggle.on::after{left:21px;}
+    .logout-btn{background:#e94560;color:white;border:none;padding:5px 10px;border-radius:10px;font-size:0.75rem;cursor:pointer;}
+    .profile-hero{background:linear-gradient(135deg,#1a1a2e,#0f3460);padding:20px;display:flex;gap:12px;align-items:center;}
+    .db-avatar{width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:1.8rem;border:2px solid #e94560;overflow:hidden;flex-shrink:0;}
+    .db-avatar img{width:100%;height:100%;object-fit:cover;}
+    .db-info{flex:1;}
+    .db-name{color:white;font-size:1.1rem;font-weight:bold;}
+    .db-phone{color:rgba(255,255,255,0.6);font-size:0.78rem;margin-top:2px;}
+    .db-vehicle{color:rgba(255,255,255,0.5);font-size:0.72rem;margin-top:2px;}
+    .stats-row{display:flex;background:white;margin-bottom:8px;}
+    .stat{flex:1;padding:12px;text-align:center;border-right:1px solid #f5f5f5;}
+    .stat:last-child{border-right:none;}
+    .stat-num{font-size:1.2rem;font-weight:bold;color:#e94560;}
+    .stat-label{font-size:0.68rem;color:#999;margin-top:2px;}
+    .tabs{display:flex;background:white;padding:5px;margin-bottom:8px;}
+    .tab{flex:1;padding:9px;border:none;background:transparent;color:#777;font-size:0.82rem;font-weight:bold;cursor:pointer;border-radius:8px;}
+    .tab.active{background:#e94560;color:white;}
+    .container{padding:0 15px 15px;}
+    .order-card{background:white;border-radius:12px;padding:15px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);border-left:4px solid #e94560;}
+    .order-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+    .order-id{font-weight:bold;font-size:0.9rem;color:#333;}
+    .order-status-badge{padding:4px 10px;border-radius:10px;font-size:0.72rem;font-weight:bold;}
+    .status-confirmed{background:#e8f4fd;color:#0072b1;}
+    .status-out_for_delivery{background:#e8f0fe;color:#4285f4;}
+    .customer-info{background:#f9f9f9;border-radius:8px;padding:12px;margin-bottom:10px;}
+    .customer-name{font-weight:bold;font-size:0.88rem;color:#333;margin-bottom:4px;}
+    .customer-phone{font-size:0.82rem;color:#555;margin-bottom:4px;}
+    .customer-address{font-size:0.78rem;color:#777;line-height:1.4;}
+    .call-btn{background:#00c864;color:white;border:none;padding:7px 14px;border-radius:8px;font-size:0.8rem;cursor:pointer;text-decoration:none;display:inline-block;margin-top:6px;}
+    .map-btn{background:#1a1a2e;color:white;border:none;padding:7px 14px;border-radius:8px;font-size:0.8rem;cursor:pointer;margin-left:6px;}
+    .order-items-list{margin-bottom:10px;}
+    .order-item-row{display:flex;justify-content:space-between;font-size:0.82rem;padding:4px 0;border-bottom:1px solid #f9f9f9;}
+    .amount-row{display:flex;justify-content:space-between;font-weight:bold;font-size:0.88rem;padding-top:6px;}
+    .otp-input{display:flex;gap:8px;margin-bottom:10px;}
+    .otp-field{flex:1;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:1.2rem;text-align:center;letter-spacing:5px;outline:none;}
+    .otp-field:focus{border-color:#e94560;}
+    .status-btns{display:flex;gap:8px;}
+    .status-btn{flex:1;padding:10px;border:none;border-radius:8px;font-size:0.82rem;font-weight:bold;cursor:pointer;}
+    .btn-preparing{background:#fff8e6;color:#f5a623;border:1px solid #f5a623;}
+    .btn-out{background:#e8f0fe;color:#4285f4;border:1px solid #4285f4;}
+    .btn-delivered{background:#e8f8f0;color:#00a854;border:1px solid #00a854;}
+    .payment-badge{display:inline-block;padding:3px 8px;border-radius:8px;font-size:0.72rem;margin-top:5px;}
+    .cash-badge{background:#fff8e6;color:#f5a623;}
+    .paid-badge{background:#e8f8f0;color:#00a854;}
+    .no-orders{text-align:center;color:#aaa;padding:30px;}
+    .map-preview{width:100%;height:150px;border-radius:10px;overflow:hidden;margin-top:8px;display:none;}
+    .map-preview iframe{width:100%;height:100%;border:0;}
+    .earnings-card{background:linear-gradient(135deg,#1a1a2e,#0f3460);border-radius:12px;padding:20px;color:white;margin-bottom:10px;text-align:center;}
+    .earnings-amount{font-size:2rem;font-weight:bold;color:#00c864;margin-bottom:5px;}
+    .earnings-label{font-size:0.82rem;color:rgba(255,255,255,0.7);}
+    .history-item{background:white;border-radius:10px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+    .history-info .id{font-weight:bold;font-size:0.85rem;}
+    .history-info .date{font-size:0.72rem;color:#aaa;margin-top:2px;}
+    .history-amount{font-weight:bold;color:#00c864;}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo">🛵 BrewDash</div>
+    <div class="name" id="dbNameHead">Delivery Panel</div>
+  </div>
+  <div class="header-right">
+    <div class="available-toggle">
+      <span class="toggle-label">Available</span>
+      <div class="toggle" id="availableToggle" onclick="toggleAvailability()"></div>
+    </div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div class="profile-hero">
+  <div class="db-avatar" id="dbAvatar">🛵</div>
+  <div class="db-info">
+    <div class="db-name" id="dbName">Loading...</div>
+    <div class="db-phone" id="dbPhone"></div>
+    <div class="db-vehicle" id="dbVehicle"></div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat"><div class="stat-num" id="statDeliveries">0</div><div class="stat-label">Deliveries</div></div>
+  <div class="stat"><div class="stat-num" id="statEarnings">₹0</div><div class="stat-label">Earnings</div></div>
+  <div class="stat"><div class="stat-num" id="statRating">0</div><div class="stat-label">Rating</div></div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="showTab('orders',this)">📦 Active Orders</button>
+  <button class="tab" onclick="showTab('earnings',this)">💰 Earnings</button>
+</div>
+
+<div class="container">
+
+  <!-- ORDERS TAB -->
+  <div id="ordersTab">
+    <div id="ordersList"><div class="no-orders">⏳ Loading orders...</div></div>
+  </div>
+
+  <!-- EARNINGS TAB -->
+  <div id="earningsTab" style="display:none;">
+    <div class="earnings-card">
+      <div class="earnings-amount" id="totalEarnings">₹0</div>
+      <div class="earnings-label">Total Earnings</div>
+    </div>
+    <div id="deliveryHistory"><div class="no-orders">⏳ Loading...</div></div>
+  </div>
+
+</div>
+
+<script>
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  if (!token || role !== 'delivery') window.location.href = '/';
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  let isAvailable = false;
+  let watchId = null;
+
+  // Socket
+  const socket = io();
+
+  // Load delivery boy profile
+  async function loadProfile() {
+    try {
+      const res = await fetch('/api/delivery/orders', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      document.getElementById('dbNameHead').textContent = user.name || 'Delivery Boy';
+      document.getElementById('dbName').textContent = user.name || 'Delivery Boy';
+      document.getElementById('dbPhone').textContent = '📱 ' + (user.phone || '');
+    } catch (err) { console.error(err); }
+  }
+
+  async function loadOrders() {
+    try {
+      const res = await fetch('/api/delivery/orders', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      if (!data.orders || !data.orders.length) {
+        document.getElementById('ordersList').innerHTML = '<div class="no-orders">📦 No active orders assigned yet!</div>';
+        return;
+      }
+      document.getElementById('ordersList').innerHTML = data.orders.map(o => `
+        <div class="order-card">
+          <div class="order-top">
+            <div class="order-id">#BD${o._id.slice(-6).toUpperCase()}</div>
+            <span class="order-status-badge status-${o.status}">${o.status.replace('_',' ').toUpperCase()}</span>
+          </div>
+
+          <div class="customer-info">
+            <div class="customer-name">👤 ${o.customer ? o.customer.name : 'Customer'}</div>
+            <div class="customer-phone">📱 ${o.customer ? o.customer.phone : ''}</div>
+            <div class="customer-address">📍 ${o.deliveryAddress}</div>
+            <a class="call-btn" href="tel:${o.customer ? o.customer.phone : ''}">📞 Call Customer</a>
+            <button class="map-btn" onclick="showMap('${o._id}','${o.deliveryAddress}')">🗺️ Map</button>
+          </div>
+
+          <div class="map-preview" id="map_${o._id}">
+            <iframe id="mapFrame_${o._id}" src="" loading="lazy"></iframe>
+          </div>
+
+          <div class="order-items-list">
+            ${o.items.map(i => `<div class="order-item-row"><span>${i.name} x${i.quantity}</span><span>₹${i.price * i.quantity}</span></div>`).join('')}
+          </div>
+
+          <div class="amount-row"><span>Total Amount</span><span>₹${o.finalAmount}</span></div>
+
+          <span class="payment-badge ${o.paymentMethod === 'cash' ? 'cash-badge' : 'paid-badge'}">
+            ${o.paymentMethod === 'cash' ? '💵 Collect Cash: ₹' + o.finalAmount : '✅ Already Paid'}
+          </span>
+
+          ${o.status === 'out_for_delivery' ? `
+          <div style="margin-top:12px;">
+            <div style="font-size:0.8rem;color:#777;margin-bottom:6px;">Enter OTP from customer to confirm delivery:</div>
+            <div class="otp-input">
+              <input class="otp-field" type="number" id="otp_${o._id}" placeholder="0000" maxlength="4"/>
+            </div>
+          </div>` : ''}
+
+          <div class="status-btns" style="margin-top:10px;">
+            ${o.status === 'confirmed' ? `<button class="status-btn btn-preparing" onclick="updateStatus('${o._id}','preparing')">📦 Preparing</button>` : ''}
+            ${o.status === 'preparing' ? `<button class="status-btn btn-out" onclick="updateStatus('${o._id}','out_for_delivery')">🛵 Out for Delivery</button>` : ''}
+            ${o.status === 'out_for_delivery' ? `<button class="status-btn btn-delivered" onclick="markDelivered('${o._id}')">✅ Mark Delivered</button>` : ''}
+          </div>
+        </div>`).join('');
+    } catch (err) {
+      document.getElementById('ordersList').innerHTML = '<div class="no-orders">Error loading orders</div>';
+    }
+  }
+
+  async function updateStatus(orderId, status) {
+    try {
+      const res = await fetch('/api/delivery/orders/' + orderId + '/status', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ status })
+      });
+      const data = await res.json();
+      if (res.ok) { loadOrders(); }
+      else alert(data.message);
+    } catch (err) { alert('Error updating status!'); }
+  }
+
+  async function markDelivered(orderId) {
+    const otpInput = document.getElementById('otp_' + orderId);
+    const otp = otpInput ? otpInput.value : '';
+    if (!otp) { alert('Please enter OTP from customer!'); return; }
+    try {
+      const res = await fetch('/api/delivery/orders/' + orderId + '/status', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ status: 'delivered', otp })
+      });
+      const data = await res.json();
+      if (res.ok) { alert('✅ Order delivered successfully!'); loadOrders(); }
+      else alert(data.message);
+    } catch (err) { alert('Error!'); }
+  }
+
+  function showMap(orderId, address) {
+    const mapDiv = document.getElementById('map_' + orderId);
+    const mapFrame = document.getElementById('mapFrame_' + orderId);
+    if (mapDiv.style.display === 'block') { mapDiv.style.display = 'none'; return; }
+    const encoded = encodeURIComponent(address);
+    mapFrame.src = `https://www.openstreetmap.org/export/embed.html?bbox=80.0,12.0,81.0,13.5&layer=mapnik`;
+    mapDiv.style.display = 'block';
+    // Get current location to show route
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        mapFrame.src = `https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.05},${lat-0.05},${lng+0.05},${lat+0.05}&layer=mapnik&marker=${lat},${lng}`;
+        // Update location on server
+        updateLocation(lat, lng, orderId);
+      });
+    }
+  }
+
+  function updateLocation(lat, lng, orderId) {
+    socket.emit('update_location', { lat, lng, orderId });
+    fetch('/api/delivery/location', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ lat, lng, orderId })
+    });
+  }
+
+  function toggleAvailability() {
+    isAvailable = !isAvailable;
+    const toggle = document.getElementById('availableToggle');
+    toggle.classList.toggle('on', isAvailable);
+    if (isAvailable) {
+      watchId = navigator.geolocation.watchPosition(pos => {
+        updateLocation(pos.coords.latitude, pos.coords.longitude, null);
+      }, null, { enableHighAccuracy: true, maximumAge: 10000 });
+    } else {
+      if (watchId) navigator.geolocation.clearWatch(watchId);
+    }
+  }
+
+  function showTab(tab, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('ordersTab').style.display = tab === 'orders' ? 'block' : 'none';
+    document.getElementById('earningsTab').style.display = tab === 'earnings' ? 'block' : 'none';
+    if (tab === 'orders') loadOrders();
+  }
+
+  function logout() { localStorage.clear(); window.location.href = '/'; }
+
+  loadProfile();
+  loadOrders();
+
+  // Auto refresh every 30 seconds
+  setInterval(loadOrders, 30000);
+</script>
+</body>
+</html>

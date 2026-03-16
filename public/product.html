@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BrewDash - Product</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
+    body{background:#f2f2f2;}
+    .header{background:#1a1a2e;padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+    .back-btn{background:none;border:none;color:white;font-size:1.4rem;cursor:pointer;}
+    .header h3{color:white;font-size:1rem;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .cart-btn{background:#e94560;color:white;border:none;padding:7px 14px;border-radius:15px;font-size:0.82rem;cursor:pointer;white-space:nowrap;}
+    .hero{width:100%;height:280px;background:linear-gradient(135deg,#1a1a2e,#e94560);display:flex;align-items:center;justify-content:center;font-size:8rem;position:relative;overflow:hidden;}
+    .hero img{width:100%;height:100%;object-fit:cover;}
+    .img-nav{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;}
+    .img-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.4);cursor:pointer;}
+    .img-dot.active{background:white;}
+    .body-content{padding:18px;}
+    .product-name{font-size:1.5rem;font-weight:bold;color:#333;margin-bottom:6px;}
+    .shop-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+    .shop-tag{background:#f0f0f0;color:#555;padding:4px 10px;border-radius:10px;font-size:0.78rem;}
+    .rating-badge{background:#f5a623;color:white;padding:4px 10px;border-radius:10px;font-size:0.78rem;font-weight:bold;}
+    .price-row{display:flex;align-items:center;gap:10px;margin-bottom:15px;flex-wrap:wrap;}
+    .price{font-size:1.8rem;font-weight:bold;color:#e94560;}
+    .original-price{font-size:1rem;color:#bbb;text-decoration:line-through;}
+    .discount{background:#e8f8f0;color:#00a854;padding:4px 10px;border-radius:10px;font-size:0.8rem;font-weight:bold;}
+    .desc{color:#666;font-size:0.9rem;line-height:1.6;margin-bottom:15px;}
+    .tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+    .tag{background:#f0f0f0;color:#555;padding:5px 12px;border-radius:15px;font-size:0.78rem;}
+    .qty-row{display:flex;align-items:center;gap:15px;margin-bottom:20px;}
+    .qty-label{font-weight:bold;color:#333;font-size:0.9rem;}
+    .qty-ctrl{display:flex;align-items:center;gap:12px;background:#f5f5f5;padding:8px 15px;border-radius:20px;}
+    .qty-btn{background:#e94560;color:white;border:none;width:28px;height:28px;border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+    .qty-num{font-weight:bold;font-size:1rem;min-width:20px;text-align:center;}
+    .section-title{font-size:1rem;font-weight:bold;color:#333;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+    .snacks-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;margin-bottom:20px;}
+    .snack-card{min-width:120px;background:white;border-radius:10px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.08);cursor:pointer;transition:transform 0.2s;flex-shrink:0;}
+    .snack-card:hover{transform:translateY(-2px);}
+    .snack-img{height:75px;background:linear-gradient(135deg,#ff6b35,#f7931e);display:flex;align-items:center;justify-content:center;font-size:1.8rem;overflow:hidden;}
+    .snack-img img{width:100%;height:100%;object-fit:cover;}
+    .snack-info{padding:8px;}
+    .snack-name{font-size:0.75rem;font-weight:bold;color:#333;margin-bottom:3px;}
+    .snack-price{color:#ff6b35;font-size:0.78rem;font-weight:bold;}
+    .snack-add{width:100%;padding:5px;background:#ff6b35;color:white;border:none;font-size:0.72rem;cursor:pointer;}
+    .review-summary{display:flex;gap:15px;align-items:center;background:#f9f9f9;border-radius:12px;padding:15px;margin-bottom:15px;}
+    .big-rating{font-size:2.5rem;font-weight:bold;color:#333;}
+    .rating-bars{flex:1;}
+    .rating-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+    .rating-bar-label{font-size:0.72rem;color:#777;width:15px;}
+    .rating-bar-bg{flex:1;height:6px;background:#eee;border-radius:3px;}
+    .rating-bar-fill{height:100%;background:#f5a623;border-radius:3px;transition:width 0.5s;}
+    .total-reviews{font-size:0.75rem;color:#999;margin-top:5px;text-align:center;}
+    .write-review-btn{width:100%;padding:12px;background:white;border:2px dashed #ddd;border-radius:10px;color:#777;font-size:0.88rem;cursor:pointer;margin-bottom:15px;transition:border 0.2s;}
+    .write-review-btn:hover{border-color:#e94560;color:#e94560;}
+    .review-card{background:white;border-radius:12px;padding:15px;margin-bottom:10px;box-shadow:0 1px 5px rgba(0,0,0,0.05);}
+    .review-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+    .reviewer-info{display:flex;align-items:center;gap:8px;}
+    .reviewer-avatar{width:32px;height:32px;border-radius:50%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:0.9rem;overflow:hidden;}
+    .reviewer-avatar img{width:100%;height:100%;object-fit:cover;}
+    .reviewer-name{font-weight:bold;font-size:0.85rem;color:#333;}
+    .reviewer-date{font-size:0.72rem;color:#aaa;}
+    .stars{color:#f5a623;font-size:0.9rem;}
+    .review-text{color:#555;font-size:0.85rem;line-height:1.5;}
+    .review-imgs{display:flex;gap:6px;margin-top:8px;}
+    .review-img{width:60px;height:60px;border-radius:8px;object-fit:cover;cursor:pointer;}
+    .sticky-footer{position:sticky;bottom:0;background:white;padding:12px 18px;border-top:1px solid #eee;display:flex;gap:10px;box-shadow:0 -2px 10px rgba(0,0,0,0.05);}
+    .add-cart-btn{flex:1;padding:14px;background:linear-gradient(135deg,#e94560,#c62a47);color:white;border:none;border-radius:10px;font-size:0.92rem;font-weight:bold;cursor:pointer;}
+    .buy-btn{flex:1;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:10px;font-size:0.92rem;font-weight:bold;cursor:pointer;}
+    .review-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:500;justify-content:center;align-items:flex-end;}
+    .review-modal.open{display:flex;}
+    .review-modal-box{background:white;width:100%;border-radius:20px 20px 0 0;padding:25px;animation:slideUp 0.3s ease;max-height:85vh;overflow-y:auto;}
+    @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+    .star-row{display:flex;gap:10px;justify-content:center;margin:15px 0;}
+    .star{font-size:2.2rem;color:#ddd;cursor:pointer;transition:color 0.2s;}
+    .star.lit{color:#f5a623;}
+    textarea{width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;font-size:0.88rem;outline:none;resize:none;margin-bottom:10px;}
+    textarea:focus{border-color:#e94560;}
+    .submit-review{width:100%;padding:13px;background:linear-gradient(135deg,#e94560,#c62a47);color:white;border:none;border-radius:10px;font-size:0.92rem;font-weight:bold;cursor:pointer;}
+    .modal-close{float:right;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#aaa;}
+    .loading{text-align:center;color:#aaa;padding:20px;}
+    .no-reviews{text-align:center;color:#aaa;padding:25px;}
+    .stock-info{display:inline-flex;align-items:center;gap:5px;font-size:0.8rem;padding:4px 10px;border-radius:10px;margin-bottom:12px;}
+    .in-stock{background:#e8f8f0;color:#00a854;}
+    .out-stock{background:#fff0f3;color:#e94560;}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <button class="back-btn" onclick="history.back()">←</button>
+  <h3 id="headerTitle">Loading...</h3>
+  <button class="cart-btn" onclick="window.location.href='/checkout'">🛒 Cart</button>
+</div>
+
+<div class="hero" id="heroEl">🍺</div>
+
+<div class="body-content">
+  <div class="product-name" id="pName">Loading...</div>
+
+  <div class="shop-row">
+    <span class="shop-tag" id="pShop">🏪 Loading...</span>
+    <span class="shop-tag" id="pCity"></span>
+    <span class="rating-badge" id="pRating" style="display:none;"></span>
+  </div>
+
+  <div class="stock-info" id="stockInfo"></div>
+
+  <div class="price-row">
+    <div class="price" id="pPrice"></div>
+    <div class="original-price" id="pOriginal" style="display:none;"></div>
+    <div class="discount" id="pDiscount" style="display:none;"></div>
+  </div>
+
+  <div class="desc" id="pDesc"></div>
+  <div class="tags" id="pTags"></div>
+
+  <div class="qty-row">
+    <div class="qty-label">Quantity:</div>
+    <div class="qty-ctrl">
+      <button class="qty-btn" onclick="changeQty(-1)">−</button>
+      <span class="qty-num" id="qtyNum">1</span>
+      <button class="qty-btn" onclick="changeQty(1)">+</button>
+    </div>
+  </div>
+
+  <!-- SUGGESTED SNACKS/FOOD -->
+  <div id="suggestedSection" style="display:none;">
+    <div class="section-title">🍗 Goes Great With</div>
+    <div class="snacks-scroll" id="snacksList"></div>
+  </div>
+
+  <!-- REVIEWS -->
+  <div class="section-title">⭐ Reviews <span id="reviewCountTitle" style="color:#aaa;font-size:0.85rem;font-weight:normal;"></span></div>
+
+  <div class="review-summary" id="reviewSummary" style="display:none;">
+    <div style="text-align:center;">
+      <div class="big-rating" id="avgRating">0</div>
+      <div style="color:#f5a623;font-size:1rem;" id="avgStars">☆☆☆☆☆</div>
+      <div class="total-reviews" id="totalReviews"></div>
+    </div>
+    <div class="rating-bars" id="ratingBars"></div>
+  </div>
+
+  <button class="write-review-btn" onclick="openReviewModal()">✍️ Write a Review</button>
+
+  <div id="reviewsList"><div class="loading">Loading reviews...</div></div>
+</div>
+
+<div class="sticky-footer">
+  <button class="add-cart-btn" id="addCartBtn" onclick="addToCart()">🛒 Add to Cart</button>
+  <button class="buy-btn" onclick="buyNow()">⚡ Buy Now</button>
+</div>
+
+<!-- REVIEW MODAL -->
+<div class="review-modal" id="reviewModal">
+  <div class="review-modal-box">
+    <button class="modal-close" onclick="closeReviewModal()">✕</button>
+    <div style="font-size:1rem;font-weight:bold;color:#333;margin-bottom:5px;">Rate & Review</div>
+    <div style="font-size:0.82rem;color:#aaa;margin-bottom:10px;" id="reviewProductName"></div>
+    <div class="star-row" id="starRow">
+      <span class="star" onclick="setRating(1)">★</span>
+      <span class="star" onclick="setRating(2)">★</span>
+      <span class="star" onclick="setRating(3)">★</span>
+      <span class="star" onclick="setRating(4)">★</span>
+      <span class="star" onclick="setRating(5)">★</span>
+    </div>
+    <div style="text-align:center;font-size:0.82rem;color:#aaa;margin-bottom:12px;" id="ratingLabel">Tap to rate</div>
+    <textarea id="reviewText" rows="4" placeholder="Share your experience..."></textarea>
+    <button class="submit-review" onclick="submitReview()">Submit Review</button>
+    <div id="reviewMsg" style="text-align:center;font-size:0.82rem;margin-top:8px;"></div>
+  </div>
+</div>
+
+<script>
+  const token = localStorage.getItem('token');
+  if (!token) window.location.href = '/';
+
+  const params = new URLSearchParams(window.location.search);
+  const productId = params.get('id');
+  if (!productId) { window.location.href = '/shop'; }
+
+  let product = null;
+  let qty = 1;
+  let selectedRating = 0;
+  let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  let currentImageIndex = 0;
+  const ratingLabels = ['', '😞 Poor', '😐 Fair', '😊 Good', '😃 Very Good', '🤩 Excellent'];
+
+  async function loadProduct() {
+    try {
+      const res = await fetch('/api/products/' + productId, {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      if (!data.success) { alert('Product not found!'); history.back(); return; }
+      product = data.product;
+      renderProduct(product);
+      loadReviews();
+    } catch (err) {
+      alert('Error loading product!');
+    }
+  }
+
+  function renderProduct(p) {
+    document.title = p.name + ' - BrewDash';
+    document.getElementById('headerTitle').textContent = p.name;
+    document.getElementById('pName').textContent = p.name;
+    document.getElementById('pShop').textContent = '🏪 ' + (p.seller ? p.seller.shopName : 'BrewDash');
+    document.getElementById('pCity').textContent = p.seller ? '📍 ' + p.seller.city : '';
+    document.getElementById('pDesc').textContent = p.description;
+    document.getElementById('pPrice').textContent = '₹' + (p.discountPrice || p.price);
+    document.getElementById('reviewProductName').textContent = p.name;
+
+    // Stock
+    const stockEl = document.getElementById('stockInfo');
+    if (p.stock > 0) {
+      stockEl.className = 'stock-info in-stock';
+      stockEl.innerHTML = '✅ In Stock (' + p.stock + ' left)';
+      document.getElementById('addCartBtn').disabled = false;
+    } else {
+      stockEl.className = 'stock-info out-stock';
+      stockEl.innerHTML = '❌ Out of Stock';
+      document.getElementById('addCartBtn').disabled = true;
+      document.getElementById('addCartBtn').style.opacity = '0.5';
+    }
+
+    // Discount
+    if (p.discountPrice && p.discountPrice < p.price) {
+      document.getElementById('pOriginal').textContent = '₹' + p.price;
+      document.getElementById('pOriginal').style.display = 'block';
+      const discPct = Math.round((1 - p.discountPrice / p.price) * 100);
+      document.getElementById('pDiscount').textContent = discPct + '% OFF';
+      document.getElementById('pDiscount').style.display = 'block';
+    }
+
+    // Rating
+    if (p.rating > 0) {
+      const rEl = document.getElementById('pRating');
+      rEl.textContent = '⭐ ' + p.rating + ' (' + p.numReviews + ' reviews)';
+      rEl.style.display = 'inline-block';
+    }
+
+    // Hero image
+    const hero = document.getElementById('heroEl');
+    if (p.images && p.images.length > 0) {
+      const emojiMap = { beer:'🍺', wine:'🍷', whiskey:'🥃', vodka:'🍸', rum:'🍹', food:'🍗', snacks:'🥜', other:'🍾' };
+      hero.innerHTML = `<img src="${p.images[0]}" alt="${p.name}" onerror="this.parentElement.innerHTML='${emojiMap[p.category] || '🍾'}'"/>`;
+      if (p.images.length > 1) {
+        hero.innerHTML += `<div class="img-nav">${p.images.map((_, i) => `<div class="img-dot ${i===0?'active':''}" onclick="changeImage(${i})"></div>`).join('')}</div>`;
+      }
+    } else {
+      const emojis = { beer:'🍺', wine:'🍷', whiskey:'🥃', vodka:'🍸', rum:'🍹', food:'🍗', snacks:'🥜', other:'🍾' };
+      hero.textContent = emojis[p.category] || '🍾';
+    }
+
+    // Tags
+    if (p.tags && p.tags.length) {
+      document.getElementById('pTags').innerHTML = p.tags.map(t => `<span class="tag">${t}</span>`).join('');
+    }
+
+    // Suggested snacks
+    if (p.suggestedSnacks && p.suggestedSnacks.length) {
+      document.getElementById('suggestedSection').style.display = 'block';
+      document.getElementById('snacksList').innerHTML = p.suggestedSnacks.map(s => `
+        <div class="snack-card">
+          <div class="snack-img" onclick="window.location.href='/product?id=${s._id}'">
+            ${s.images && s.images.length ? `<img src="${s.images[0]}" alt="${s.name}" onerror="this.parentElement.innerHTML='🍗'"/>` : '🍗'}
+          </div>
+          <div class="snack-info">
+            <div class="snack-name">${s.name}</div>
+            <div class="snack-price">₹${s.price}</div>
+          </div>
+          <button class="snack-add" onclick="addSnackToCart('${s._id}','${s.name}',${s.price})">+ Add</button>
+        </div>`).join('');
+    }
+  }
+
+  function changeImage(index) {
+    const p = product;
+    if (!p || !p.images) return;
+    currentImageIndex = index;
+    const hero = document.getElementById('heroEl');
+    hero.querySelector('img').src = p.images[index];
+    document.querySelectorAll('.img-dot').forEach((d, i) => d.classList.toggle('active', i === index));
+  }
+
+  async function loadReviews() {
+    try {
+      const res = await fetch('/api/reviews/' + productId);
+      const data = await res.json();
+      const reviews = data.reviews || [];
+      document.getElementById('reviewCountTitle').textContent = '(' + reviews.length + ')';
+
+      if (!reviews.length) {
+        document.getElementById('reviewsList').innerHTML = '<div class="no-reviews">No reviews yet. Be the first to review!</div>';
+        return;
+      }
+
+      // Summary
+      document.getElementById('reviewSummary').style.display = 'flex';
+      const avg = (reviews.reduce((a, r) => a + r.rating, 0) / reviews.length).toFixed(1);
+      document.getElementById('avgRating').textContent = avg;
+      document.getElementById('avgStars').textContent = '★'.repeat(Math.round(avg)) + '☆'.repeat(5 - Math.round(avg));
+      document.getElementById('totalReviews').textContent = reviews.length + ' reviews';
+
+      // Rating bars
+      const counts = [0, 0, 0, 0, 0];
+      reviews.forEach(r => counts[r.rating - 1]++);
+      document.getElementById('ratingBars').innerHTML = [5,4,3,2,1].map(i => `
+        <div class="rating-bar-row">
+          <div class="rating-bar-label">${i}★</div>
+          <div class="rating-bar-bg"><div class="rating-bar-fill" style="width:${reviews.length ? (counts[i-1]/reviews.length*100) : 0}%"></div></div>
+          <div style="font-size:0.72rem;color:#aaa;width:20px;">${counts[i-1]}</div>
+        </div>`).join('');
+
+      // Reviews list
+      document.getElementById('reviewsList').innerHTML = reviews.map(r => `
+        <div class="review-card">
+          <div class="review-top">
+            <div class="reviewer-info">
+              <div class="reviewer-avatar">${r.userAvatar ? `<img src="${r.userAvatar}" alt="${r.userName}"/>` : '👤'}</div>
+              <div><div class="reviewer-name">${r.userName}</div><div class="reviewer-date">${new Date(r.createdAt).toLocaleDateString()}</div></div>
+            </div>
+            <div class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+          </div>
+          <div class="review-text">${r.comment}</div>
+          ${r.images && r.images.length ? `<div class="review-imgs">${r.images.map(img => `<img class="review-img" src="${img}" alt="review"/>`).join('')}</div>` : ''}
+        </div>`).join('');
+    } catch (err) {
+      document.getElementById('reviewsList').innerHTML = '<div class="no-reviews">Error loading reviews</div>';
+    }
+  }
+
+  function changeQty(change) {
+    qty = Math.max(1, qty + change);
+    document.getElementById('qtyNum').textContent = qty;
+  }
+
+  function addToCart() {
+    if (!product || product.stock === 0) return;
+    const id = productId;
+    const existing = cart.find(c => c.id === id);
+    if (existing) { existing.qty += qty; } else {
+      cart.push({
+        id,
+        name: product.name,
+        shop: product.seller ? product.seller.shopName : 'BrewDash',
+        price: product.discountPrice || product.price,
+        image: product.images && product.images.length ? product.images[0] : '',
+        qty
+      });
+    }
+    localStorage.setItem('cart', JSON.stringify(cart));
+    alert('✅ ' + product.name + ' added to cart!');
+  }
+
+  function addSnackToCart(id, name, price) {
+    const existing = cart.find(c => c.id === id);
+    if (existing) { existing.qty += 1; } else { cart.push({ id, name, shop: 'BrewDash', price, image: '', qty: 1 }); }
+    localStorage.setItem('cart', JSON.stringify(cart));
+    alert('✅ ' + name + ' added!');
+  }
+
+  function buyNow() { addToCart(); window.location.href = '/checkout'; }
+
+  // REVIEW MODAL
+  function openReviewModal() { document.getElementById('reviewModal').classList.add('open'); }
+  function closeReviewModal() { document.getElementById('reviewModal').classList.remove('open'); }
+
+  function setRating(r) {
+    selectedRating = r;
+    document.querySelectorAll('.star').forEach((s, i) => s.classList.toggle('lit', i < r));
+    document.getElementById('ratingLabel').textContent = ratingLabels[r];
+  }
+
+  async function submitReview() {
+    const comment = document.getElementById('reviewText').value.trim();
+    const msg = document.getElementById('reviewMsg');
+    if (!selectedRating) { msg.style.color = '#e94560'; msg.textContent = '❌ Please select a rating!'; return; }
+    if (!comment) { msg.style.color = '#e94560'; msg.textContent = '❌ Please write a comment!'; return; }
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ productId, rating: selectedRating, comment })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        msg.style.color = '#00a854';
+        msg.textContent = '✅ Review submitted!';
+        setTimeout(() => { closeReviewModal(); loadReviews(); }, 1500);
+      } else {
+        msg.style.color = '#e94560';
+        msg.textContent = data.message;
+      }
+    } catch (err) {
+      msg.style.color = '#e94560';
+      msg.textContent = '❌ Error submitting review!';
+    }
+  }
+
+  loadProduct();
+</script>
+</body>
+</html>
+

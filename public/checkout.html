@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BrewDash - Checkout</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
+    body{background:#f2f2f2;}
+    .header{background:#1a1a2e;padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+    .back-btn{background:none;border:none;color:white;font-size:1.4rem;cursor:pointer;}
+    .header h3{color:white;font-size:1rem;}
+    .container{max-width:600px;margin:0 auto;padding:15px;}
+    .card{background:white;border-radius:15px;padding:20px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+    .card-title{font-size:0.95rem;font-weight:bold;color:#333;margin-bottom:15px;padding-bottom:10px;border-bottom:2px solid #f0f0f0;}
+    .order-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #f9f9f9;}
+    .item-img{width:55px;height:55px;border-radius:10px;background:linear-gradient(135deg,#1a1a2e,#0f3460);display:flex;align-items:center;justify-content:center;font-size:1.5rem;overflow:hidden;flex-shrink:0;}
+    .item-img img{width:100%;height:100%;object-fit:cover;}
+    .item-info{flex:1;}
+    .item-name{font-weight:bold;font-size:0.88rem;color:#333;}
+    .item-shop{font-size:0.72rem;color:#999;margin:2px 0;}
+    .item-qty-price{display:flex;justify-content:space-between;align-items:center;margin-top:5px;}
+    .item-qty{font-size:0.8rem;color:#777;}
+    .item-price{font-weight:bold;color:#e94560;font-size:0.9rem;}
+    .qty-ctrl{display:flex;align-items:center;gap:8px;}
+    .qty-btn{background:#e94560;color:white;border:none;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:0.85rem;}
+    .address-box{background:#f9f9f9;border-radius:10px;padding:12px;margin-bottom:12px;}
+    .addr-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+    .addr-label{font-size:0.82rem;color:#777;font-weight:bold;}
+    .change-btn{background:none;border:none;color:#e94560;font-size:0.8rem;cursor:pointer;}
+    .addr-text{font-size:0.85rem;color:#333;line-height:1.5;}
+    textarea{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.88rem;outline:none;resize:none;}
+    textarea:focus{border-color:#e94560;}
+    .loc-btns{display:flex;gap:8px;margin-bottom:10px;}
+    .loc-btn{flex:1;padding:9px;border:none;border-radius:8px;cursor:pointer;font-size:0.78rem;font-weight:bold;}
+    .loc-btn-primary{background:#1a1a2e;color:white;}
+    .loc-btn-secondary{background:#f0f0f0;color:#333;}
+    .bill-row{display:flex;justify-content:space-between;padding:6px 0;font-size:0.88rem;color:#555;}
+    .bill-row.total{font-weight:bold;font-size:1rem;color:#333;border-top:1px solid #eee;padding-top:10px;margin-top:5px;}
+    .pay-option{display:flex;align-items:center;gap:12px;padding:13px;border:2px solid #eee;border-radius:10px;margin-bottom:10px;cursor:pointer;transition:all 0.2s;}
+    .pay-option.selected{border-color:#e94560;background:#fff0f3;}
+    .pay-icon{font-size:1.8rem;}
+    .pay-name{font-weight:bold;font-size:0.9rem;color:#333;}
+    .pay-desc{font-size:0.75rem;color:#999;}
+    .pay-radio{margin-left:auto;accent-color:#e94560;width:18px;height:18px;}
+    .sticky-footer{position:sticky;bottom:0;background:white;padding:12px 20px;border-top:1px solid #eee;}
+    .place-btn{width:100%;padding:14px;background:linear-gradient(135deg,#e94560,#c62a47);color:white;border:none;border-radius:10px;font-size:1rem;font-weight:bold;cursor:pointer;}
+    .upi-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:500;justify-content:center;align-items:flex-end;}
+    .upi-modal.open{display:flex;}
+    .upi-content{background:white;width:100%;border-radius:20px 20px 0 0;padding:25px;max-height:90vh;overflow-y:auto;animation:slideUp 0.3s ease;position:relative;}
+    @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+    .upi-title{font-size:1rem;font-weight:bold;color:#333;margin-bottom:4px;}
+    .upi-sub{font-size:0.82rem;color:#999;margin-bottom:18px;}
+    .upi-apps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:15px;}
+    .upi-app{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;border:2px solid #eee;border-radius:10px;cursor:pointer;transition:all 0.2s;}
+    .upi-app:hover,.upi-app.selected{border-color:#e94560;background:#fff0f3;}
+    .upi-app-icon{font-size:1.8rem;}
+    .upi-app-name{font-size:0.75rem;font-weight:bold;color:#333;}
+    .upi-divider{text-align:center;color:#aaa;font-size:0.82rem;margin:12px 0;position:relative;}
+    .upi-divider::before,.upi-divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:#eee;}
+    .upi-divider::before{left:0;}
+    .upi-divider::after{right:0;}
+    .upi-input-row{display:flex;gap:8px;margin-bottom:8px;}
+    .upi-input{flex:1;padding:11px 14px;border:1px solid #ddd;border-radius:8px;font-size:0.88rem;outline:none;}
+    .upi-input:focus{border-color:#e94560;}
+    .verify-btn{padding:11px 14px;background:#1a1a2e;color:white;border:none;border-radius:8px;font-weight:bold;cursor:pointer;white-space:nowrap;font-size:0.82rem;}
+    .upi-msg{font-size:0.8rem;min-height:18px;margin-bottom:10px;}
+    .upi-close{position:absolute;top:15px;right:20px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#aaa;}
+    .pay-btn{width:100%;padding:13px;background:linear-gradient(135deg,#e94560,#c62a47);color:white;border:none;border-radius:10px;font-size:0.95rem;font-weight:bold;cursor:pointer;}
+    .processing-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;justify-content:center;align-items:center;flex-direction:column;gap:15px;}
+    .processing-modal.open{display:flex;}
+    .spinner{width:55px;height:55px;border:5px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .proc-text{color:white;font-size:1rem;font-weight:bold;}
+    .proc-sub{color:rgba(255,255,255,0.7);font-size:0.82rem;}
+    .map-box{width:100%;height:150px;border-radius:10px;overflow:hidden;margin-bottom:10px;display:none;}
+    .saved-addrs{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+    .saved-card{display:flex;align-items:center;gap:10px;padding:10px;border:2px solid #eee;border-radius:8px;cursor:pointer;}
+    .saved-card.active{border-color:#e94560;background:#fff0f3;}
+    .saved-icon{font-size:1.3rem;}
+    .saved-label{font-weight:bold;font-size:0.82rem;}
+    .saved-addr{font-size:0.72rem;color:#999;}
+    .empty-cart{text-align:center;padding:40px;color:#aaa;}
+    .loc-status{font-size:0.78rem;min-height:16px;margin-bottom:8px;}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <button class="back-btn" onclick="history.back()">←</button>
+  <h3>Checkout</h3>
+</div>
+
+<div class="container">
+
+  <!-- ORDER ITEMS -->
+  <div class="card">
+    <div class="card-title">🛒 Order Items (<span id="itemCount">0</span>)</div>
+    <div id="orderItemsList"></div>
+  </div>
+
+  <!-- DELIVERY ADDRESS -->
+  <div class="card">
+    <div class="card-title">📍 Delivery Address</div>
+    <div class="loc-btns">
+      <button class="loc-btn loc-btn-primary" onclick="getCurrentLocation()">📍 Current Location</button>
+      <button class="loc-btn loc-btn-secondary" onclick="enableManual()">✏️ Enter Manually</button>
+    </div>
+    <div class="loc-status" id="locStatus"></div>
+    <div class="map-box" id="mapBox">
+      <iframe id="mapFrame" width="100%" height="150" style="border:0;" loading="lazy"></iframe>
+    </div>
+    <textarea id="deliveryAddress" rows="2" placeholder="Enter delivery address..."></textarea>
+    <div class="saved-addrs" id="savedAddrs"></div>
+  </div>
+
+  <!-- BILL DETAILS -->
+  <div class="card">
+    <div class="card-title">🧾 Bill Details</div>
+    <div class="bill-row"><span>Item Total</span><span id="billItemTotal">₹0</span></div>
+    <div class="bill-row"><span>Delivery Fee</span><span>₹30</span></div>
+    <div class="bill-row"><span>Taxes (5%)</span><span id="billTax">₹0</span></div>
+    <div class="bill-row total"><span>Total Amount</span><span id="billTotal">₹0</span></div>
+  </div>
+
+  <!-- PAYMENT METHOD -->
+  <div class="card">
+    <div class="card-title">💳 Payment Method</div>
+    <div class="pay-option selected" onclick="selectPay(this,'upi')">
+      <div class="pay-icon">📱</div>
+      <div><div class="pay-name">UPI Payment</div><div class="pay-desc">GPay, PhonePe, Paytm & more</div></div>
+      <input type="radio" class="pay-radio" name="pay" checked/>
+    </div>
+    <div class="pay-option" onclick="selectPay(this,'card')">
+      <div class="pay-icon">💳</div>
+      <div><div class="pay-name">Credit / Debit Card</div><div class="pay-desc">Visa, Mastercard, Rupay</div></div>
+      <input type="radio" class="pay-radio" name="pay"/>
+    </div>
+    <div class="pay-option" onclick="selectPay(this,'cash')">
+      <div class="pay-icon">💵</div>
+      <div><div class="pay-name">Cash on Delivery</div><div class="pay-desc">Pay when order arrives</div></div>
+      <input type="radio" class="pay-radio" name="pay"/>
+    </div>
+  </div>
+
+</div>
+
+<div class="sticky-footer">
+  <button class="place-btn" onclick="placeOrder()">✅ Place Order — <span id="footerTotal">₹0</span></button>
+</div>
+
+<!-- UPI MODAL -->
+<div class="upi-modal" id="upiModal">
+  <div class="upi-content">
+    <button class="upi-close" onclick="closeUpi()">✕</button>
+    <div class="upi-title">💳 Pay with UPI</div>
+    <div class="upi-sub">Choose your UPI app or enter UPI ID</div>
+    <div class="upi-apps">
+      <div class="upi-app" onclick="selectUpiApp(this,'GPay')"><div class="upi-app-icon">🟢</div><div class="upi-app-name">GPay</div></div>
+      <div class="upi-app" onclick="selectUpiApp(this,'PhonePe')"><div class="upi-app-icon">🟣</div><div class="upi-app-name">PhonePe</div></div>
+      <div class="upi-app" onclick="selectUpiApp(this,'Paytm')"><div class="upi-app-icon">🔵</div><div class="upi-app-name">Paytm</div></div>
+      <div class="upi-app" onclick="selectUpiApp(this,'BHIM')"><div class="upi-app-icon">🟠</div><div class="upi-app-name">BHIM</div></div>
+      <div class="upi-app" onclick="selectUpiApp(this,'Amazon')"><div class="upi-app-icon">🟡</div><div class="upi-app-name">Amazon Pay</div></div>
+      <div class="upi-app" onclick="selectUpiApp(this,'Other')"><div class="upi-app-icon">💜</div><div class="upi-app-name">Other UPI</div></div>
+    </div>
+    <div class="upi-divider">OR enter UPI ID</div>
+    <div class="upi-input-row">
+      <input class="upi-input" id="upiIdInput" placeholder="name@upi"/>
+      <button class="verify-btn" onclick="verifyUpi()">Verify</button>
+    </div>
+    <div class="upi-msg" id="upiMsg"></div>
+    <button class="pay-btn" onclick="processUpi()">Pay <span id="upiAmount"></span></button>
+  </div>
+</div>
+
+<!-- PROCESSING MODAL -->
+<div class="processing-modal" id="processingModal">
+  <div class="spinner"></div>
+  <div class="proc-text" id="procText">Processing...</div>
+  <div class="proc-sub" id="procSub">Please wait...</div>
+</div>
+
+<script>
+  const token = localStorage.getItem('token');
+  if (!token) window.location.href = '/';
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const savedLocation = JSON.parse(localStorage.getItem('userLocation') || '{}');
+  let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  let selectedPayment = 'upi';
+  let selectedUpiApp = '';
+
+  if (!cart.length) {
+    document.querySelector('.container').innerHTML = '<div class="empty-cart" style="background:white;border-radius:15px;padding:40px;text-align:center;"><div style="font-size:3rem;margin-bottom:10px;">🛒</div><p style="color:#aaa;">Your cart is empty!</p><button onclick="window.location.href=\'/shop\'" style="margin-top:15px;padding:10px 20px;background:#e94560;color:white;border:none;border-radius:8px;cursor:pointer;">Go to Shop</button></div>';
+  }
+
+  // Render order items
+  function renderItems() {
+    document.getElementById('itemCount').textContent = cart.reduce((a, c) => a + c.qty, 0);
+    document.getElementById('orderItemsList').innerHTML = cart.map(item => `
+      <div class="order-item">
+        <div class="item-img">
+          ${item.image ? `<img src="${item.image}" alt="${item.name}" onerror="this.parentElement.innerHTML='🍺'"/>` : '🍺'}
+        </div>
+        <div class="item-info">
+          <div class="item-name">${item.name}</div>
+          <div class="item-shop">🏪 ${item.shop}</div>
+          <div class="item-qty-price">
+            <div class="qty-ctrl">
+              <button class="qty-btn" onclick="changeQty('${item.id}',-1)">-</button>
+              <span style="font-size:0.88rem;">${item.qty}</span>
+              <button class="qty-btn" onclick="changeQty('${item.id}',1)">+</button>
+            </div>
+            <div class="item-price">₹${item.price * item.qty}</div>
+          </div>
+        </div>
+      </div>`).join('');
+    updateBill();
+  }
+
+  function changeQty(id, change) {
+    const item = cart.find(c => c.id === id);
+    if (item) { item.qty += change; if (item.qty <= 0) cart = cart.filter(c => c.id !== id); }
+    localStorage.setItem('cart', JSON.stringify(cart));
+    if (!cart.length) window.location.href = '/shop';
+    renderItems();
+  }
+
+  function updateBill() {
+    const itemTotal = cart.reduce((a, c) => a + c.price * c.qty, 0);
+    const tax = Math.round(itemTotal * 0.05);
+    const total = itemTotal + 30 + tax;
+    document.getElementById('billItemTotal').textContent = '₹' + itemTotal;
+    document.getElementById('billTax').textContent = '₹' + tax;
+    document.getElementById('billTotal').textContent = '₹' + total;
+    document.getElementById('footerTotal').textContent = '₹' + total;
+    document.getElementById('upiAmount').textContent = '₹' + total;
+  }
+
+  // LOCATION
+  const savedAddressList = [
+    { icon: '🏠', label: 'Home', address: user.address || savedLocation.address || '' },
+  ].filter(a => a.address);
+
+  function renderSavedAddrs() {
+    document.getElementById('savedAddrs').innerHTML = savedAddressList.map((a, i) => `
+      <div class="saved-card" onclick="selectAddr(${i},this)">
+        <div class="saved-icon">${a.icon}</div>
+        <div><div class="saved-label">${a.label}</div><div class="saved-addr">${a.address}</div></div>
+      </div>`).join('');
+    if (savedAddressList.length > 0) {
+      document.getElementById('deliveryAddress').value = savedAddressList[0].address;
+    }
+  }
+
+  function selectAddr(i, el) {
+    document.querySelectorAll('.saved-card').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('deliveryAddress').value = savedAddressList[i].address;
+  }
+
+  function getCurrentLocation() {
+    const status = document.getElementById('locStatus');
+    status.style.color = 'orange';
+    status.textContent = '⏳ Getting location...';
+    if (!navigator.geolocation) { status.textContent = '❌ Not supported'; return; }
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      status.textContent = '⏳ Fetching address...';
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+        const data = await res.json();
+        document.getElementById('deliveryAddress').value = data.display_name;
+        document.getElementById('mapFrame').src = `https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.01},${lat-0.01},${lng+0.01},${lat+0.01}&layer=mapnik&marker=${lat},${lng}`;
+        document.getElementById('mapBox').style.display = 'block';
+        status.style.color = '#00a854';
+        status.textContent = '✅ Location detected!';
+      } catch (e) { status.style.color = '#e94560'; status.textContent = '❌ Could not fetch address'; }
+    }, () => { status.style.color = '#e94560'; status.textContent = '❌ Permission denied'; });
+  }
+
+  function enableManual() {
+    document.getElementById('deliveryAddress').focus();
+    document.getElementById('locStatus').textContent = '';
+    document.getElementById('mapBox').style.display = 'none';
+  }
+
+  // PAYMENT
+  function selectPay(el, method) {
+    document.querySelectorAll('.pay-option').forEach(o => { o.classList.remove('selected'); o.querySelector('input').checked = false; });
+    el.classList.add('selected');
+    el.querySelector('input').checked = true;
+    selectedPayment = method;
+  }
+
+  function placeOrder() {
+    const address = document.getElementById('deliveryAddress').value.trim();
+    if (!address) { alert('Please enter delivery address!'); return; }
+    if (selectedPayment === 'upi') {
+      document.getElementById('upiModal').classList.add('open');
+    } else if (selectedPayment === 'card') {
+      showProcessing('Processing Card Payment...', 'Connecting to payment gateway...');
+      setTimeout(() => { hideProcessing(); confirmOrder('card', 'CARD' + Date.now()); }, 3000);
+    } else {
+      confirmOrder('cash', null);
+    }
+  }
+
+  // UPI
+  function closeUpi() {
+    document.getElementById('upiModal').classList.remove('open');
+    selectedUpiApp = '';
+    document.querySelectorAll('.upi-app').forEach(a => a.classList.remove('selected'));
+    document.getElementById('upiIdInput').value = '';
+    document.getElementById('upiMsg').textContent = '';
+  }
+
+  function selectUpiApp(el, app) {
+    document.querySelectorAll('.upi-app').forEach(a => a.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedUpiApp = app;
+    document.getElementById('upiMsg').innerHTML = `<span style="color:#00a854;">✅ ${app} selected!</span>`;
+    document.getElementById('upiIdInput').value = '';
+  }
+
+  function verifyUpi() {
+    const upiId = document.getElementById('upiIdInput').value.trim();
+    const msg = document.getElementById('upiMsg');
+    if (!upiId) { msg.innerHTML = '<span style="color:#e94560;">❌ Enter UPI ID</span>'; return; }
+    if (!upiId.includes('@')) { msg.innerHTML = '<span style="color:#e94560;">❌ Invalid UPI ID</span>'; return; }
+    msg.innerHTML = '<span style="color:orange;">⏳ Verifying...</span>';
+    setTimeout(() => { msg.innerHTML = '<span style="color:#00a854;">✅ UPI ID Verified!</span>'; selectedUpiApp = upiId; }, 1500);
+  }
+
+  function processUpi() {
+    if (!selectedUpiApp) { document.getElementById('upiMsg').innerHTML = '<span style="color:#e94560;">❌ Select a UPI app or enter UPI ID</span>'; return; }
+    closeUpi();
+    showProcessing('Opening ' + selectedUpiApp + '...', 'Waiting for payment confirmation...');
+    setTimeout(() => {
+      document.getElementById('procText').textContent = '✅ Payment Successful!';
+      document.getElementById('procSub').textContent = 'Confirming your order...';
+      setTimeout(() => { hideProcessing(); confirmOrder('upi', 'UPI' + Date.now()); }, 1500);
+    }, 2500);
+  }
+
+  function showProcessing(text, sub) {
+    document.getElementById('procText').textContent = text;
+    document.getElementById('procSub').textContent = sub;
+    document.getElementById('processingModal').classList.add('open');
+  }
+
+  function hideProcessing() { document.getElementById('processingModal').classList.remove('open'); }
+
+  async function confirmOrder(method, paymentId) {
+    const address = document.getElementById('deliveryAddress').value.trim();
+    const items = cart.map(c => ({ productId: c.id, quantity: c.qty }));
+
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({
+          items,
+          deliveryAddress: address,
+          paymentMethod: method,
+          paymentId,
+          upiApp: selectedUpiApp
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.removeItem('cart');
+        localStorage.setItem('lastOrder', JSON.stringify(data.order));
+        window.location.href = '/tracking?id=' + data.order.id;
+      } else {
+        alert(data.message);
+      }
+    } catch (err) {
+      alert('Error placing order! Try again.');
+    }
+  }
+
+  renderItems();
+  renderSavedAddrs();
+</script>
+</body>
+</html>

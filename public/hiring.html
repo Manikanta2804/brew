@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BrewDash - Join as Delivery Boy</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
+    body{background:#f2f2f2;min-height:100vh;}
+    .header{background:linear-gradient(135deg,#1a1a2e,#e94560);padding:30px 20px;text-align:center;color:white;}
+    .header h1{font-size:1.8rem;margin-bottom:5px;}
+    .header p{color:rgba(255,255,255,0.8);font-size:0.9rem;}
+    .container{max-width:600px;margin:0 auto;padding:20px;}
+    .card{background:white;border-radius:15px;padding:25px;margin-bottom:15px;box-shadow:0 2px 10px rgba(0,0,0,0.08);}
+    .card h2{font-size:1.1rem;color:#333;margin-bottom:15px;padding-bottom:10px;border-bottom:2px solid #f0f0f0;}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+    .form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+    label{font-size:0.82rem;color:#777;font-weight:bold;}
+    input,select,textarea{padding:11px 14px;border:1px solid #ddd;border-radius:8px;font-size:0.9rem;outline:none;width:100%;}
+    input:focus,select:focus{border-color:#e94560;}
+    .upload-box{border:2px dashed #ddd;border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:border 0.2s;}
+    .upload-box:hover{border-color:#e94560;}
+    .upload-box input{display:none;}
+    .upload-icon{font-size:2rem;margin-bottom:5px;}
+    .upload-label{font-size:0.82rem;color:#aaa;}
+    .preview{width:80px;height:80px;border-radius:50%;object-fit:cover;margin:10px auto;display:none;}
+    .benefits{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;}
+    .benefit{background:#f9f9f9;border-radius:10px;padding:15px;text-align:center;}
+    .benefit-icon{font-size:1.5rem;margin-bottom:5px;}
+    .benefit-text{font-size:0.8rem;color:#555;font-weight:bold;}
+    .btn{width:100%;padding:15px;background:linear-gradient(135deg,#e94560,#c62a47);color:white;border:none;border-radius:10px;font-size:1rem;font-weight:bold;cursor:pointer;}
+    .msg{padding:12px;border-radius:8px;margin-top:10px;font-size:0.9rem;text-align:center;}
+    .success{background:#e8f8f0;color:#00a854;}
+    .error{background:#fff0f3;color:#e94560;}
+    .status-card{background:white;border-radius:15px;padding:25px;margin-bottom:15px;box-shadow:0 2px 10px rgba(0,0,0,0.08);display:none;}
+    .status-badge{display:inline-block;padding:6px 15px;border-radius:20px;font-size:0.85rem;font-weight:bold;}
+    .pending{background:#fff8e6;color:#f5a623;}
+    .approved{background:#e8f8f0;color:#00a854;}
+    .rejected{background:#fff0f3;color:#e94560;}
+    .tabs{display:flex;gap:5px;background:#f0f0f0;padding:5px;border-radius:12px;margin-bottom:20px;}
+    .tab{flex:1;padding:10px;border:none;border-radius:8px;cursor:pointer;font-weight:bold;font-size:0.9rem;background:transparent;color:#777;}
+    .tab.active{background:white;color:#e94560;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div style="font-size:2.5rem;margin-bottom:10px;">🛵</div>
+  <h1>Join BrewDash</h1>
+  <p>Become a delivery partner and earn great income!</p>
+</div>
+
+<div class="container">
+
+  <!-- BENEFITS -->
+  <div class="card">
+    <h2>💰 Why Join BrewDash?</h2>
+    <div class="benefits">
+      <div class="benefit"><div class="benefit-icon">💵</div><div class="benefit-text">₹500-1500/day earnings</div></div>
+      <div class="benefit"><div class="benefit-icon">⏰</div><div class="benefit-text">Flexible working hours</div></div>
+      <div class="benefit"><div class="benefit-icon">🛵</div><div class="benefit-text">Use your own vehicle</div></div>
+      <div class="benefit"><div class="benefit-icon">📱</div><div class="benefit-text">Easy app to use</div></div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('apply',this)">📋 Apply Now</button>
+    <button class="tab" onclick="showTab('status',this)">🔍 Check Status</button>
+  </div>
+
+  <!-- APPLY FORM -->
+  <div id="applyTab">
+    <div class="card">
+      <h2>👤 Personal Information</h2>
+      <div class="form-row">
+        <div class="form-group"><label>Full Name *</label><input type="text" id="appName" placeholder="Your full name"/></div>
+        <div class="form-group"><label>Phone *</label><input type="text" id="appPhone" placeholder="Phone number"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Email</label><input type="email" id="appEmail" placeholder="Email (optional)"/></div>
+        <div class="form-group"><label>Age *</label><input type="number" id="appAge" placeholder="Your age"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>City *</label><input type="text" id="appCity" placeholder="Your city"/></div>
+        <div class="form-group"><label>Area *</label><input type="text" id="appArea" placeholder="Your area"/></div>
+      </div>
+
+      <!-- PHOTO UPLOAD -->
+      <div class="form-group">
+        <label>Your Photo *</label>
+        <div class="upload-box" onclick="document.getElementById('photoInput').click()">
+          <input type="file" id="photoInput" accept="image/*" onchange="previewImg(this,'photoPreview')"/>
+          <img id="photoPreview" class="preview"/>
+          <div class="upload-icon">📷</div>
+          <div class="upload-label">Click to upload your photo</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🛵 Vehicle Information</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Vehicle Type *</label>
+          <select id="appVehicle">
+            <option value="">Select vehicle</option>
+            <option value="bike">🏍️ Bike</option>
+            <option value="scooter">🛵 Scooter</option>
+            <option value="bicycle">🚲 Bicycle</option>
+            <option value="car">🚗 Car</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Vehicle Number *</label><input type="text" id="appVehicleNum" placeholder="TN 01 AB 1234"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>License Number *</label><input type="text" id="appLicense" placeholder="DL number"/></div>
+        <div class="form-group"><label>Experience</label><input type="text" id="appExp" placeholder="e.g. 2 years"/></div>
+      </div>
+
+      <!-- LICENSE IMAGE -->
+      <div class="form-group">
+        <label>License Image *</label>
+        <div class="upload-box" onclick="document.getElementById('licenseInput').click()">
+          <input type="file" id="licenseInput" accept="image/*" onchange="previewImg(this,'licensePreview')"/>
+          <img id="licensePreview" class="preview"/>
+          <div class="upload-icon">📄</div>
+          <div class="upload-label">Upload driving license</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🪪 Identity Verification</h2>
+      <div class="form-group"><label>Aadhar Number</label><input type="text" id="appAadhar" placeholder="XXXX XXXX XXXX"/></div>
+      <div class="form-group">
+        <label>Aadhar Image</label>
+        <div class="upload-box" onclick="document.getElementById('aadharInput').click()">
+          <input type="file" id="aadharInput" accept="image/*" onchange="previewImg(this,'aadharPreview')"/>
+          <img id="aadharPreview" class="preview"/>
+          <div class="upload-icon">🪪</div>
+          <div class="upload-label">Upload Aadhar card</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn" onclick="submitApplication()">🚀 Submit Application</button>
+    <div id="applyMsg" class="msg"></div>
+  </div>
+
+  <!-- STATUS CHECK -->
+  <div id="statusTab" style="display:none;">
+    <div class="card">
+      <h2>🔍 Check Application Status</h2>
+      <div class="form-group">
+        <label>Enter your Phone Number</label>
+        <input type="text" id="statusPhone" placeholder="Phone number used during application"/>
+      </div>
+      <button class="btn" onclick="checkStatus()">Check Status</button>
+      <div id="statusResult" style="margin-top:15px;"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function showTab(tab, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('applyTab').style.display = tab === 'apply' ? 'block' : 'none';
+    document.getElementById('statusTab').style.display = tab === 'status' ? 'block' : 'none';
+  }
+
+  function previewImg(input, previewId) {
+    const file = input.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.getElementById(previewId);
+        img.src = e.target.result;
+        img.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  async function submitApplication() {
+    const name = document.getElementById('appName').value.trim();
+    const phone = document.getElementById('appPhone').value.trim();
+    const age = document.getElementById('appAge').value;
+    const city = document.getElementById('appCity').value.trim();
+    const area = document.getElementById('appArea').value.trim();
+    const vehicleType = document.getElementById('appVehicle').value;
+    const vehicleNumber = document.getElementById('appVehicleNum').value.trim();
+    const licenseNumber = document.getElementById('appLicense').value.trim();
+
+    if (!name || !phone || !age || !city || !area || !vehicleType || !vehicleNumber || !licenseNumber) {
+      showMsg('applyMsg', '❌ Please fill all required fields!', 'error'); return;
+    }
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('phone', phone);
+    formData.append('email', document.getElementById('appEmail').value);
+    formData.append('age', age);
+    formData.append('city', city);
+    formData.append('area', area);
+    formData.append('vehicleType', vehicleType);
+    formData.append('vehicleNumber', vehicleNumber);
+    formData.append('licenseNumber', licenseNumber);
+    formData.append('experience', document.getElementById('appExp').value);
+    formData.append('aadharNumber', document.getElementById('appAadhar').value);
+
+    const photoFile = document.getElementById('photoInput').files[0];
+    const licenseFile = document.getElementById('licenseInput').files[0];
+    const aadharFile = document.getElementById('aadharInput').files[0];
+    if (photoFile) formData.append('photo', photoFile);
+    if (licenseFile) formData.append('licenseImage', licenseFile);
+    if (aadharFile) formData.append('aadharImage', aadharFile);
+
+    try {
+      const res = await fetch('/api/hiring/apply', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (res.ok) {
+        showMsg('applyMsg', data.message, 'success');
+        setTimeout(() => window.location.href = '/', 2000);
+      } else {
+        showMsg('applyMsg', data.message, 'error');
+      }
+    } catch (err) {
+      showMsg('applyMsg', '❌ Server error! Try again.', 'error');
+    }
+  }
+
+  async function checkStatus() {
+    const phone = document.getElementById('statusPhone').value.trim();
+    if (!phone) { alert('Please enter phone number!'); return; }
+    try {
+      const res = await fetch('/api/hiring/status/' + phone);
+      const data = await res.json();
+      const result = document.getElementById('statusResult');
+      if (res.ok) {
+        const app = data.application;
+        result.innerHTML = `
+          <div style="background:#f9f9f9;border-radius:12px;padding:15px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <strong>${app.name}</strong>
+              <span class="status-badge ${app.status}">${app.status.toUpperCase()}</span>
+            </div>
+            <p style="font-size:0.85rem;color:#777;">📱 ${app.phone}</p>
+            <p style="font-size:0.85rem;color:#777;">🛵 ${app.vehicleType} - ${app.vehicleNumber}</p>
+            <p style="font-size:0.85rem;color:#777;">📍 ${app.city}, ${app.area}</p>
+            ${app.adminNote ? `<p style="margin-top:10px;font-size:0.85rem;color:#555;">📝 Note: ${app.adminNote}</p>` : ''}
+            <p style="margin-top:10px;font-size:0.78rem;color:#aaa;">Applied: ${new Date(app.createdAt).toLocaleDateString()}</p>
+          </div>`;
+      } else {
+        result.innerHTML = `<p style="color:#e94560;text-align:center;">${data.message}</p>`;
+      }
+    } catch (err) {
+      alert('Server error!');
+    }
+  }
+
+  function showMsg(id, msg, type) {
+    const el = document.getElementById(id);
+    el.className = 'msg ' + type;
+    el.textContent = msg;
+  }
+</script>
+</body>
+</html>
